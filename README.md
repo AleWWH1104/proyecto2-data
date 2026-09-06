@@ -21,7 +21,7 @@ No hay carpeta `src/`: todo el código va directo en las celdas del notebook, ju
 
 Descarga desde la competencia de Kaggle (hay que aceptar las reglas primero: botón **"Join Competition"** en la página de la competencia — es gratis e instantáneo):
 
-- `train.csv`, `test.csv`, `sample_submission.csv` — **necesarios**, aquí está casi todo el EDA (órgano, sexo, edad, tamaño de píxel, grosor de tejido, dimensiones de imagen).
+- `train.csv` — es el único archivo necesario, aquí está casi todo el EDA (órgano, sexo, edad, tamaño de píxel, grosor de tejido, dimensiones de imagen). No hace falta `test.csv` ni `sample_submission.csv` porque no se va a participar en la competencia, solo se usan los datos.
 - `train_images/`, `test_images/` — **no descargues todo el set** (son archivos `.tiff` pesados y no hacen falta para el EDA). Basta con bajar una **muestra pequeña** (10-20 imágenes, idealmente variadas por órgano) para mostrar ejemplos visuales del problema y las máscaras — eso sí requiere haber aceptado las reglas de la competencia.
 
 Coloca lo descargado dentro de `data/` (esa carpeta está en `.gitignore`, no se versiona).
@@ -29,8 +29,6 @@ Coloca lo descargado dentro de `data/` (esa carpeta está en `.gitignore`, no se
 Con la [Kaggle API](https://www.kaggle.com/docs/api) (requiere `kaggle.json` configurado):
 ```bash
 kaggle competitions download -c hubmap-organ-segmentation -f train.csv -p data/
-kaggle competitions download -c hubmap-organ-segmentation -f test.csv -p data/
-kaggle competitions download -c hubmap-organ-segmentation -f sample_submission.csv -p data/
 ```
 
 ## División de actividades (3 personas, secciones secuenciales)
