@@ -1,6 +1,8 @@
 # Datos (no versionar, son de Kaggle)
 data/*
 !data/.gitkeep
+*.csv
+*.csv.zip
 
 # Jupyter
 .ipynb_checkpoints/
