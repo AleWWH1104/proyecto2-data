@@ -99,6 +99,36 @@ axes[1].set_xlabel("alto de la imagen (px)")
 axes[1].set_ylabel("")
 guardar("dispersion.png")
 
+# --- paradoja de Simpson (figura para la presentacion) ---------------------
+fig, axes = plt.subplots(1, 2, figsize=(13, 5), sharey=True)
+
+sns.regplot(data=train, x="age", y="mask_frac", ax=axes[0], scatter_kws={"alpha": 0.55, "s": 35},
+            line_kws={"color": "crimson", "lw": 2.5}, ci=None, color="#555555")
+r_global = train["age"].corr(train["mask_frac"])
+axes[0].set_title(f"Todos los órganos juntos:  r = {r_global:.3f}")
+axes[0].set_xlabel("edad (años)")
+axes[0].set_ylabel("proporción de FTU")
+
+for organo, grupo in train.groupby("organ", observed=True):
+    sns.regplot(data=grupo, x="age", y="mask_frac", ax=axes[1], ci=None,
+                scatter_kws={"alpha": 0.55, "s": 35}, line_kws={"lw": 2.2}, label=organo)
+axes[1].set_title("Separado por órgano: la tendencia se aplana o se invierte")
+axes[1].set_xlabel("edad (años)")
+axes[1].set_ylabel("")
+axes[1].legend(title="órgano", fontsize=8)
+guardar("simpson.png")
+
+
+# --- proporcion de FTU por organo, version para diapositiva -----------------
+plt.figure(figsize=(9, 5))
+sns.boxplot(data=train, x="organ", y="mask_frac", order=orden_organ,
+            hue="organ", legend=False, palette="deep")
+plt.title("La FTU no ocupa lo mismo en cada órgano")
+plt.xlabel("")
+plt.ylabel("proporción de la imagen ocupada por la FTU")
+guardar("ftu_por_organo.png")
+
+
 # --- numeros que se citan en el informe -----------------------------------
 print("\ncorr global age~mask_frac:", round(train["age"].corr(train["mask_frac"]), 3))
 for organo, grupo in train.groupby("organ", observed=True):
