@@ -4,7 +4,7 @@ División equitativa: **5 diapositivas de contenido por persona** (Iris abre con
 
 ---
 
-## Iris Ayala — Introducción y datos (diaps. 2 a 6)
+## Iris Ayala — Introducción y datos (diaps. 1 a 5)
 
 **Diap. 1 — Portada**
 
@@ -39,7 +39,7 @@ _Transición:_ "Con esa base de los datos, le paso a Jonatan para que les cuente
 
 ---
 
-## Jonatan Díaz — Análisis exploratorio (diaps. 7 a 11)
+## Jonatan Díaz — Análisis exploratorio (diaps. 6 a 10)
 
 **Diap. 6 — Variables univariadas**
 
@@ -74,7 +74,7 @@ _Transición:_ "Ahora Anggie va a mostrarles el hallazgo más importante del an�
 
 ---
 
-## Anggie Quezada — Hallazgos multivariados y conclusiones (diaps. 12 a 16, + cierre)
+## Anggie Quezada — Hallazgos multivariados y conclusiones (diaps. 11 a 17)
 
 **Diap. 11 — Hallazgo 2: la FTU no ocupa lo mismo en cada órgano**
 
