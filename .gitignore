@@ -15,3 +15,12 @@ venv/
 
 # SO
 .DS_Store
+
+# LaTeX (artefactos de compilacion)
+*.aux
+*.log
+*.out
+*.toc
+*.nav
+*.snm
+*.vrb
