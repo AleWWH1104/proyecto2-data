@@ -27,68 +27,33 @@
 
 \maketitle
 
-%----------------------------------------------------------------------
-\begin{frame}{Agenda}
-  \setbeamertemplate{section in toc}[sections numbered]
-  \tableofcontents
-\end{frame}
-
 %======================================================================
-\section{El problema}
+\section{Introducción}
 %======================================================================
 
-\begin{frame}{¿Qué es una unidad funcional de tejido?}
+\begin{frame}{Introducción y base conceptual}
   \begin{columns}[T]
-    \begin{column}{0.56\textwidth}
-      Una \alert{FTU} es un grupo pequeño de células organizadas alrededor de un vaso sanguíneo que
-      cumplen juntas una función dentro del órgano.
-
-      \vspace{0.5em}
-      El reto cubre \alert{cinco órganos}, y en cada uno la FTU se ve distinta:
-
-      \begin{itemize}
-        \item Riñón $\rightarrow$ glomérulos
-        \item Intestino grueso $\rightarrow$ criptas
-        \item Próstata $\rightarrow$ unidades glandulares
-        \item Bazo y pulmón $\rightarrow$ estructuras propias
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.42\textwidth}
+    \begin{column}{0.5\textwidth}
       \begin{block}{Contexto}
-        HuBMAP quiere mapear el cuerpo humano a nivel de célula.
-
-        \vspace{0.4em}
-        Las muestras se tiñen con \alert{PAS}, que resalta membranas basales y estructuras
-        glandulares. De ahí el tono rosado y morado.
+        \begin{itemize}
+          \item HuBMAP: mapear el cuerpo humano a nivel de célula
+          \item \alert{FTU}: grupo de células alrededor de un vaso sanguíneo con una función en el
+                órgano
+          \item Cinco órganos, cinco tipos de FTU distintos
+          \item Tinción \alert{PAS} $\rightarrow$ tono rosado/morado en las imágenes
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{block}{Situación actual}
+        \begin{itemize}
+          \item Hoy un \alert{patólogo marca las FTU a mano}
+          \item Lento, subjetivo, no escala
+          \item Muestras del mismo órgano se ven distinto según el laboratorio
+        \end{itemize}
       \end{block}
     \end{column}
   \end{columns}
-\end{frame}
-
-\begin{frame}{Situación problemática}
-  Hoy las FTU las marca un \alert{patólogo a mano}, al microscopio.
-
-  \vspace{1em}
-  \begin{columns}[T]
-    \begin{column}{0.31\textwidth}
-      \begin{block}{Lento}
-        Imagen por imagen, estructura por estructura.
-      \end{block}
-    \end{column}
-    \begin{column}{0.31\textwidth}
-      \begin{block}{Subjetivo}
-        Depende de la experiencia de quien lo hace.
-      \end{block}
-    \end{column}
-    \begin{column}{0.31\textwidth}
-      \begin{block}{No escala}
-        Imposible con miles de imágenes de distintos órganos.
-      \end{block}
-    \end{column}
-  \end{columns}
-
-  \vspace{1.2em}
-  Y encima, muestras del mismo órgano preparadas en \alert{laboratorios distintos no se ven igual}.
 \end{frame}
 
 \begin{frame}{Problema científico y objetivos}
