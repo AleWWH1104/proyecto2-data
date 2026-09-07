@@ -1,116 +1,103 @@
 # Guion de presentación — Reto 18: HuBMAP
 
-División equitativa: **5 diapositivas de contenido por persona** (Iris abre con la portada, Anggie cierra con agradecimientos).
+Distribución sobre las **22 diapositivas reales** del PDF: el tema metropolis inserta automáticamente una diapositiva separadora por cada `\section{}` (solo el nombre de la sección, sin contenido), además de las 17 diapositivas de contenido (portada + 16 frames). Está escrito como si lo estuvieran hablando — úsenlo de base y adáptenlo a como hablan normalmente.
 
 ---
 
-## Iris Ayala — Introducción y datos (diaps. 1 a 5)
+## Iris Ayala — Introducción y datos (diaps. 1 a 7)
 
 **Diap. 1 — Portada**
 
-> "Buenas [tardes/días]. Somos Iris Ayala, Jonatan Díaz y Anggie Quezada, y les vamos a presentar el análisis exploratorio del Reto 18: Hackeando el cuerpo humano, el proyecto HuBMAP sobre segmentación de unidades funcionales de tejido."
+> Buenas [tardes/días]. Somos Iris Ayala, Jonatan Díaz y Anggie Quezada, y les vamos a presentar el análisis exploratorio que hicimos para el Reto 18, "Hackeando el cuerpo humano", que es la competencia HuBMAP de segmentación de unidades funcionales de tejido.
 
-**Diap. 2 — Introducción y base conceptual**
+**Diap. 2 — [Separador] Introducción**
 
-- HuBMAP busca mapear el cuerpo humano a nivel de célula.
-- Una FTU (unidad funcional de tejido) es un grupo de células alrededor de un vaso sanguíneo que cumple una función dentro del órgano — el reto cubre cinco órganos y en cada uno la FTU se ve distinta (glomérulos en riñón, criptas en intestino, etc.).
-- Las muestras se tiñen con PAS, por eso las imágenes se ven en tonos rosado/morado.
-- Hoy esas FTU las marca un patólogo a mano, al microscopio: es lento, subjetivo y no escala. Y para complicarlo más, muestras del mismo órgano preparadas en laboratorios distintos no se ven igual.
+> Empezamos con la introducción y la base conceptual del proyecto.
 
-**Diap. 3 — Problema científico y objetivos**
+**Diap. 3 — Introducción y base conceptual**
 
-- Pregunta de investigación: a partir de una imagen de tejido, ¿se puede entrenar un modelo que marque con precisión dónde están las FTU, sin importar el órgano ni la fuente de la muestra?
-- Objetivo general: explorar y describir los datos para entender cómo están compuestas las imágenes y las variables, como base para una futura solución de segmentación.
-- Objetivos específicos: describir variables y detectar diferencias entre grupos; analizar cómo se relacionan órgano, fuente, edad y sexo; cuantificar el área que ocupa la FTU entre órganos.
+> El proyecto es sobre HuBMAP, que busca mapear el cuerpo humano a nivel de célula, y una pieza clave de ese mapa son las unidades funcionales de tejido, o FTU, un grupito de células alrededor de un vaso sanguíneo que cumple una función dentro del órgano. Cada uno de los cinco órganos del reto tiene su propia versión de FTU, y las muestras se tiñen con PAS, por eso ese tono rosado y morado en las imágenes.
+>
+> Hoy esas FTU las marca un patólogo a mano, al microscopio, y eso es lento, subjetivo y no escala. Y para complicarlo más, ni siquiera las muestras del mismo órgano se ven igual entre laboratorios.
 
-**Diap. 4 — Qué tenemos**
+**Diap. 4 — Problema científico y objetivos**
 
-- `train.csv` tiene 351 observaciones (una por imagen), 10 variables, cero nulos y cero duplicados.
-- La única limpieza necesaria fue convertir `organ`, `data_source` y `sex` a tipo categórico — el dataset llegó muy limpio.
-- Repasar rápido la tabla: identificador, tres categóricas, dimensiones de imagen, `pixel_size`, `tissue_thickness`, `age`, y `rle` como texto que guarda la máscara.
+> Pregunta de investigación: a partir de una imagen de tejido, ¿podemos entrenar un modelo que marque con precisión dónde están las FTU, sin importar el órgano ni el laboratorio de origen? Nuestro objetivo general fue explorar y describir los datos como base para eso. Los específicos: describir las variables y detectar diferencias entre grupos, analizar cómo se relacionan órgano, fuente, edad y sexo, y cuantificar el área que ocupa la FTU entre órganos.
 
-**Diap. 5 — La columna `rle`**
+**Diap. 5 — [Separador] Los datos**
 
-- La máscara de la FTU no viene como imagen, viene comprimida en run-length encoding: pares de (posición inicial, longitud).
-- Por qué importa: guardar una máscara de 3000×3000 píxeles como matriz sería inviable en una celda de texto; el rle la reduce a unos miles de caracteres.
-- De ahí construimos `mask_frac`: píxeles marcados como FTU dividido entre el área total de la imagen. Basta sumar las longitudes, sin reconstruir la máscara completa.
+> Ahora sí, vamos a los datos.
 
-_Transición:_ "Con esa base de los datos, le paso a Jonatan para que les cuente lo que encontramos al explorar las variables una por una y en pares."
+**Diap. 6 — Qué tenemos**
 
----
+> `train.csv` tiene 351 observaciones, una por imagen, y 10 variables — cero nulos, cero duplicados. La única limpieza que hicimos fue convertir `organ`, `data_source` y `sex` a tipo categórico. En la tabla: un identificador, esas tres categóricas, alto y ancho de imagen, tamaño de píxel, grosor del tejido, edad, y `rle`, que guarda la máscara de la FTU — de esa hablamos ahora.
 
-## Jonatan Díaz — Análisis exploratorio (diaps. 6 a 10)
+**Diap. 7 — La columna `rle`**
 
-**Diap. 6 — Variables univariadas**
-
-- Edad va de 21 a 84 años, con mediana en 60.
-- Casi todas las imágenes son de 3000×3000 píxeles.
-- La proporción de FTU (`mask_frac`) está sesgada a la derecha: la mediana es de apenas 0.059, es decir, en la mayoría de imágenes la FTU ocupa una fracción muy pequeña.
-
-**Diap. 7 — Variables categóricas**
-
-- Hay desbalance por órgano: 99 riñones contra solo 48 pulmones.
-- También por sexo: 229 hombres contra 122 mujeres.
-- Y algo llamativo: `data_source` tiene una sola barra, es decir, una sola categoría presente en todo el dataset — volvemos a esto más adelante porque tiene una implicación importante.
-
-**Diap. 8 — Cruces por órgano**
-
-- Próstata es 100% masculino, lo cual es biología normal, no un error de los datos.
-- Intestino grueso tiene una mediana de edad de 83 años, contra 57-59 años del resto de órganos: esto muestra que órgano y edad no son variables independientes entre sí.
-
-**Diap. 9 — Outliers**
-
-- En `age` hay 13 outliers, todos con valor 21 años — pero 21 cae dentro del rango normal para pulmón y bazo, así que son atípicos solo si se ignora el órgano.
-- En `img_height` hay 25 outliers: el 75% de las imágenes mide exactamente 3000 px, entonces el rango intercuartílico es cero y el método de outliers marca todo lo que no sea 3000 — la variable es casi binaria, no continua.
-- En ambos casos documentamos el hallazgo pero no eliminamos nada; tampoco hay valores faltantes en las 351 filas.
-
-**Diap. 10 — Hallazgo 1: variables que no dicen nada**
-
-- `pixel_size` (0.4) y `tissue_thickness` (4.0) son constantes en las 351 filas, varianza cero — por eso salen como NaN en la matriz de correlación, no es un bug del código.
-- Además, `img_height` es igual a `img_width` siempre: las imágenes son cuadradas, y 326 de 351 son exactamente 3000×3000.
-- Conclusión: de las variables tabulares, solo `organ`, `sex`, `age` y la derivada del `rle` (`mask_frac`) aportan información real.
-
-_Transición:_ "Ahora Anggie va a mostrarles el hallazgo más importante del análisis: una paradoja que casi nos hace sacar una conclusión equivocada, y cómo cerramos el análisis."
+> La máscara de la FTU no viene como imagen, viene comprimida en run-length encoding: pares de (dónde empieza un segmento, cuánto dura). Guardarla completa como matriz de 3000x3000 sería inviable en una celda de texto; el rle la reduce a unos miles de caracteres. De ahí construimos `mask_frac`: la fracción de la imagen ocupada por FTU, sumando las longitudes sin reconstruir la máscara completa.
 
 ---
 
-## Anggie Quezada — Hallazgos multivariados y conclusiones (diaps. 11 a 17)
+## Jonatan Díaz — Análisis exploratorio (diaps. 8 a 15)
 
-**Diap. 11 — Hallazgo 2: la FTU no ocupa lo mismo en cada órgano**
+**Diap. 8 — [Separador] Análisis exploratorio**
 
-- La mediana de `mask_frac` por órgano va de 19.6% en intestino grueso a apenas 1.3% en pulmón — la mediana global es 5.9%.
-- Eso es una diferencia de quince veces entre el órgano con más FTU y el que tiene menos.
-- Encontrar la FTU no es el mismo problema en cada órgano: un modelo que funcione bien en intestino grueso puede fallar completamente en pulmón.
+> Pasamos a la parte de análisis exploratorio.
 
-**Diap. 12 y 13 — Hallazgo 3: la paradoja de Simpson**
+**Diap. 9 — Variables univariadas**
 
-- Si calculamos la correlación global entre edad y tamaño de FTU, sale +0.248 — parecería que a mayor edad, mayor FTU.
-- Pero si estratificamos por órgano, la correlación cambia de signo o se vuelve prácticamente nula en varios: riñón -0.178, pulmón -0.396, próstata y bazo casi cero.
-- La razón: intestino grueso tiene a la vez los donantes más viejos y las FTU más grandes, entonces al mezclar todos los órganos ese grupo arrastra la correlación global hacia arriba — la correlación global no mide edad contra FTU, mide el órgano disfrazado.
-- Implicación clave: cualquier correlación calculada sobre este conjunto sin estratificar por órgano es poco confiable.
+> La edad va de 21 a 84 años, mediana 60. Casi todas las imágenes son de 3000x3000. Y `mask_frac` está sesgada a la derecha: mediana de apenas 0.059, en la mayoría de imágenes la FTU ocupa una fracción muy pequeña.
 
-**Diap. 14 — Hallazgo 4: el desbalance está en varios ejes a la vez**
+**Diap. 10 — Variables categóricas**
 
-- Desbalance por órgano (99 riñones vs 48 pulmones), por sexo (229 hombres vs 122 mujeres) y por edad (concentrada entre 55 y 73 años).
-- Y no son independientes entre sí: los 93 casos de próstata son todos masculinos, e intestino grueso concentra a los donantes de mayor edad.
-- El desbalance de un eje se filtra en los otros — no se pueden tratar por separado.
+> Desbalance por órgano (99 riñones contra 48 pulmones) y por sexo (229 hombres contra 122 mujeres). Y `data_source` tiene una sola barra: todas las filas vienen de una única fuente — volvemos a esto más adelante.
 
-**Diap. 15 — Hallazgo 5: la dificultad del reto no está en los datos**
+**Diap. 11 — Cruces por órgano**
 
-- Las 351 filas de `train.csv` tienen `data_source = HPA`; no hay ni una sola observación de HuBMAP en el set de entrenamiento.
-- Las muestras de HuBMAP quedan del lado del conjunto de prueba de la competencia.
-- Pero la dificultad central del reto es justamente que el modelo funcione con muestras preparadas en laboratorios distintos — esa variabilidad no se puede observar ni medir dentro de los datos de entrenamiento que tenemos.
+> Próstata es 100% masculino, biología y no un error. Intestino grueso tiene mediana de edad de 83 años contra 57-59 del resto: órgano y edad no son independientes entre sí.
 
-**Diap. 16 — Siguientes pasos / Conclusiones**
+**Diap. 12 — Outliers**
 
-- Descartar `pixel_size` y `tissue_thickness`: no discriminan nada.
-- Tratar esto como segmentación desbalanceada: con solo 5.9% de píxeles positivos, predecir fondo en toda la imagen daría más de 94% de exactitud por píxel y sería un modelo inútil — hay que usar métricas como Dice o IoU, no exactitud.
-- Validar por órgano y no solo en global, porque el promedio esconde que pulmón y riñón son mucho más difíciles.
-- Estratificar todo análisis por órgano, como lo demostró la paradoja de Simpson.
-- Apoyarse en aumentación de color y tinción, la única vía para simular la variabilidad entre fuentes que el entrenamiento no contiene.
+> En `age`, 13 outliers, todos con 21 años — pero cae dentro del rango normal de pulmón y bazo, así que son atípicos solo si se ignora el órgano. En `img_height`, 25 outliers: el 75% mide exactamente 3000 px, el rango intercuartílico es cero y el método marca todo lo que no sea 3000 — la variable es casi binaria, no continua. En ambos casos documentamos y no eliminamos nada. Tampoco hay valores faltantes.
 
-**Diap. 17 — Cierre**
+**Diap. 13 — [Separador] Hallazgos**
 
-> "Con esto cerramos el análisis exploratorio del Reto 18. El código completo está en nuestro repositorio de GitHub, AleWWH1104/proyecto2-data. Muchas gracias."
+> Con eso llegamos a los hallazgos principales.
+
+**Diap. 14 — Hallazgo 1: variables que no dicen nada**
+
+> `pixel_size` (0.4) y `tissue_thickness` (4.0) son constantes en las 351 filas, varianza cero — por eso salen NaN en la matriz de correlación, no es un bug del código. `img_height` es siempre igual a `img_width`: las imágenes son cuadradas, y 326 de 351 son de 3000x3000. De las variables tabulares, solo `organ`, `sex`, `age` y `mask_frac` aportan información real.
+
+**Diap. 15 — Hallazgo 2: la FTU no ocupa lo mismo en cada órgano**
+
+> La mediana de `mask_frac` va de 19.6% en intestino grueso a apenas 1.3% en pulmón — global: 5.9%. Quince veces de diferencia. Encontrar la FTU no es el mismo problema en cada órgano.
+
+---
+
+## Anggie Quezada — Hallazgos multivariados y conclusiones (diaps. 16 a 22)
+
+**Diap. 16 y 17 — Hallazgo 3: la paradoja de Simpson**
+
+> La correlación global entre edad y tamaño de FTU es +0.248. Pero estratificada por órgano: riñón -0.178, pulmón -0.396, próstata y bazo casi cero. La razón: intestino grueso tiene a la vez a los donantes más viejos (mediana 83) y las FTU más grandes (19.6%), y arrastra la correlación global hacia arriba. Es la paradoja de Simpson: la correlación global mide el órgano disfrazado, no la relación real entre edad y FTU. Cualquier correlación sin estratificar por órgano es poco confiable.
+
+**Diap. 18 — Hallazgo 4: el desbalance está en varios ejes a la vez**
+
+> Desbalance por órgano, sexo y edad, y no son independientes entre sí: los 93 casos de próstata son todos masculinos, e intestino grueso concentra a los donantes de mayor edad. El desbalance de un eje se filtra en los otros.
+
+**Diap. 19 — Hallazgo 5: la dificultad del reto no está en los datos**
+
+> Las 351 filas tienen `data_source = HPA`; no hay ni una observación de HuBMAP en el set de entrenamiento — esas quedan del lado del test de la competencia. La dificultad central del reto es justamente que el modelo funcione entre laboratorios distintos, y esa variabilidad no se puede medir con los datos que tenemos.
+
+**Diap. 20 — [Separador] Conclusiones**
+
+> Y para cerrar, las conclusiones.
+
+**Diap. 21 — Siguientes pasos / Conclusiones**
+
+> Descartar `pixel_size` y `tissue_thickness`, no discriminan nada. Tratar esto como segmentación desbalanceada: con 5.9% de píxeles positivos, predecir solo fondo daría más de 94% de exactitud y sería inútil — usar Dice o IoU. Validar por órgano, no solo en global. Estratificar todo análisis por órgano, como mostró la paradoja de Simpson. Y apoyarse en aumentación de color y tinción para simular la variabilidad entre fuentes que no tenemos en el entrenamiento.
+
+**Diap. 22 — Cierre**
+
+> Muchas gracias.
 
 ---
