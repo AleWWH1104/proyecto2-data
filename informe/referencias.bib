@@ -1,0 +1,187 @@
+% Referencias del Proyecto 2 (Reto 18: HuBMAP - Hacking the Human Body)
+% Uso en LaTeX: \usepackage[style=apa,backend=biber]{biblatex} y \addbibresource{referencias.bib}
+% Citar en el texto con \textcite{clave} o \parencite{clave}.
+
+% ---------------------------------------------------------------
+% Contexto del reto: HuBMAP, unidades funcionales de tejido (FTU)
+% ---------------------------------------------------------------
+
+@article{jain2023hacking,
+  author  = {Jain, Yashvardhan and Godwin, Leah L. and Joshi, Sripad and Mandarapu, Shriya and Le, Trang and Lindskog, Cecilia and Lundberg, Emma and B{\"o}rner, Katy},
+  title   = {Segmenting functional tissue units across human organs using community-driven development of generalizable machine learning algorithms},
+  journal = {Nature Communications},
+  year    = {2023},
+  volume  = {14},
+  pages   = {4656},
+  doi     = {10.1038/s41467-023-40291-0}
+}
+
+@article{jain2023kidney,
+  author  = {Jain, Yashvardhan and Godwin, Leah L. and Ju, Yingnan and Sood, Naveksha and Quardokus, Ellen M. and Bueckle, Andreas and Longacre, Teri and Horning, Aaron and Lin, Yiing and Esplin, Edward D. and Hickey, John W. and Snyder, Michael P. and Patterson, N. Heath and Spraggins, Jeffrey M. and B{\"o}rner, Katy},
+  title   = {Segmentation of human functional tissue units in support of a {Human Reference Atlas}},
+  journal = {Communications Biology},
+  year    = {2023},
+  volume  = {6},
+  pages   = {717},
+  doi     = {10.1038/s42003-023-04848-5}
+}
+
+@article{hubmap2019,
+  author  = {{HuBMAP Consortium}},
+  title   = {The human body at cellular resolution: The {NIH} {Human Biomolecular Atlas Program}},
+  journal = {Nature},
+  year    = {2019},
+  volume  = {574},
+  number  = {7777},
+  pages   = {187--192},
+  doi     = {10.1038/s41586-019-1629-x}
+}
+
+@article{debono2013ftu,
+  author  = {de Bono, Bernard and Grenon, Pierre and Baldock, Richard and Hunter, Peter},
+  title   = {Functional tissue units and their primary tissue motifs in multi-scale physiology},
+  journal = {Journal of Biomedical Semantics},
+  year    = {2013},
+  volume  = {4},
+  number  = {1},
+  pages   = {22},
+  doi     = {10.1186/2041-1480-4-22}
+}
+
+@article{bidanta2025ftu,
+  author  = {Bidanta, Supriya and B{\"o}rner, Katy and Herr, II, Bruce W. and Quardokus, Ellen M. and Nagy, Marcell and Gustilo, Katherine S. and Bajema, Rachel and Maier, Elizabeth and Molontay, Roland and Weber, Griffin M.},
+  title   = {Functional tissue units in the {Human Reference Atlas}},
+  journal = {Nature Communications},
+  year    = {2025},
+  volume  = {16},
+  pages   = {1526},
+  doi     = {10.1038/s41467-024-54591-6}
+}
+
+% ---------------------------------------------------------------
+% Aprendizaje profundo en imagen médica (revisiones)
+% ---------------------------------------------------------------
+
+@article{litjens2017survey,
+  author  = {Litjens, Geert and Kooi, Thijs and Bejnordi, Babak Ehteshami and Setio, Arnaud Arindra Adiyoso and Ciompi, Francesco and Ghafoorian, Mohsen and van der Laak, Jeroen A. W. M. and van Ginneken, Bram and S{\'a}nchez, Clara I.},
+  title   = {A survey on deep learning in medical image analysis},
+  journal = {Medical Image Analysis},
+  year    = {2017},
+  volume  = {42},
+  pages   = {60--88},
+  doi     = {10.1016/j.media.2017.07.005}
+}
+
+@article{siddique2021unet,
+  author  = {Siddique, Nahian and Paheding, Sidike and Elkin, Colin P. and Devabhaktuni, Vijay},
+  title   = {{U-Net} and its variants for medical image segmentation: A review of theory and applications},
+  journal = {IEEE Access},
+  year    = {2021},
+  volume  = {9},
+  pages   = {82031--82057},
+  doi     = {10.1109/ACCESS.2021.3086020}
+}
+
+% ---------------------------------------------------------------
+% Arquitecturas de segmentación
+% ---------------------------------------------------------------
+
+@inproceedings{ronneberger2015unet,
+  author    = {Ronneberger, Olaf and Fischer, Philipp and Brox, Thomas},
+  title     = {{U-Net}: Convolutional networks for biomedical image segmentation},
+  booktitle = {Medical Image Computing and Computer-Assisted Intervention -- {MICCAI} 2015},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {9351},
+  pages     = {234--241},
+  publisher = {Springer},
+  year      = {2015},
+  doi       = {10.1007/978-3-319-24574-4_28}
+}
+
+@article{zhou2020unetpp,
+  author  = {Zhou, Zongwei and Siddiquee, Md Mahfuzur Rahman and Tajbakhsh, Nima and Liang, Jianming},
+  title   = {{UNet++}: Redesigning skip connections to exploit multiscale features in image segmentation},
+  journal = {IEEE Transactions on Medical Imaging},
+  year    = {2020},
+  volume  = {39},
+  number  = {6},
+  pages   = {1856--1867},
+  doi     = {10.1109/TMI.2019.2959609}
+}
+
+@inproceedings{chen2018deeplabv3plus,
+  author    = {Chen, Liang-Chieh and Zhu, Yukun and Papandreou, George and Schroff, Florian and Adam, Hartwig},
+  title     = {Encoder-decoder with atrous separable convolution for semantic image segmentation},
+  booktitle = {Computer Vision -- {ECCV} 2018},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {11211},
+  pages     = {833--851},
+  publisher = {Springer},
+  year      = {2018},
+  doi       = {10.1007/978-3-030-01234-2_49}
+}
+
+@inproceedings{xie2021segformer,
+  author    = {Xie, Enze and Wang, Wenhai and Yu, Zhiding and Anandkumar, Anima and Alvarez, Jose M. and Luo, Ping},
+  title     = {{SegFormer}: Simple and efficient design for semantic segmentation with transformers},
+  booktitle = {Advances in Neural Information Processing Systems},
+  volume    = {34},
+  pages     = {12077--12090},
+  year      = {2021},
+  url       = {https://proceedings.neurips.cc/paper/2021/hash/64f1f27bf1b4ec22924fd0acb550c235-Abstract.html}
+}
+
+@inproceedings{xu2021coat,
+  author    = {Xu, Weijian and Xu, Yifan and Chang, Tyler and Tu, Zhuowen},
+  title     = {Co-scale conv-attentional image transformers},
+  booktitle = {2021 IEEE/CVF International Conference on Computer Vision (ICCV)},
+  pages     = {9961--9970},
+  publisher = {IEEE},
+  year      = {2021},
+  doi       = {10.1109/ICCV48922.2021.00983}
+}
+
+@article{isensee2021nnunet,
+  author  = {Isensee, Fabian and Jaeger, Paul F. and Kohl, Simon A. A. and Petersen, Jens and Maier-Hein, Klaus H.},
+  title   = {{nnU-Net}: A self-configuring method for deep learning-based biomedical image segmentation},
+  journal = {Nature Methods},
+  year    = {2021},
+  volume  = {18},
+  number  = {2},
+  pages   = {203--211},
+  doi     = {10.1038/s41592-020-01008-z}
+}
+
+% ---------------------------------------------------------------
+% Preprocesamiento de imágenes histológicas y función de pérdida
+% ---------------------------------------------------------------
+
+@inproceedings{macenko2009stain,
+  author    = {Macenko, Marc and Niethammer, Marc and Marron, J. S. and Borland, David and Woosley, John T. and Guan, Xiaojun and Schmitt, Charles and Thomas, Nancy E.},
+  title     = {A method for normalizing histology slides for quantitative analysis},
+  booktitle = {2009 IEEE International Symposium on Biomedical Imaging: From Nano to Macro},
+  pages     = {1107--1110},
+  publisher = {IEEE},
+  year      = {2009},
+  doi       = {10.1109/ISBI.2009.5193250}
+}
+
+@article{tellez2019stain,
+  author  = {Tellez, David and Litjens, Geert and B{\'a}ndi, P{\'e}ter and Bulten, Wouter and Bokhorst, John-Melle and Ciompi, Francesco and van der Laak, Jeroen},
+  title   = {Quantifying the effects of data augmentation and stain color normalization in convolutional neural networks for computational pathology},
+  journal = {Medical Image Analysis},
+  year    = {2019},
+  volume  = {58},
+  pages   = {101544},
+  doi     = {10.1016/j.media.2019.101544}
+}
+
+@inproceedings{milletari2016vnet,
+  author    = {Milletari, Fausto and Navab, Nassir and Ahmadi, Seyed-Ahmad},
+  title     = {{V-Net}: Fully convolutional neural networks for volumetric medical image segmentation},
+  booktitle = {2016 Fourth International Conference on 3D Vision (3DV)},
+  pages     = {565--571},
+  publisher = {IEEE},
+  year      = {2016},
+  doi       = {10.1109/3DV.2016.79}
+}
