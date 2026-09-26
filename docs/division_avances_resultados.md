@@ -8,11 +8,11 @@ El trabajo es **en cadena**: cada persona empieza cuando la anterior le entrega 
 
 ## Resumen
 
-| Orden | Persona | Tema | Sección del notebook | Le entrega a |
-| --- | --- | --- | --- | --- |
-| 1 | Persona 1 | Pipeline de datos | 2 | Persona 2 |
-| 2 | Persona 2 | Entrenamiento de los modelos | 3 | Persona 3 |
-| 3 | Persona 3 | Evaluación, comparación y visualizaciones | 4 | Entrega del avance |
+| Orden | Persona   | Tema                                      |
+| ----- | --------- | ----------------------------------------- |
+| 1     | Persona 1 | Pipeline de datos                         |
+| 2     | Persona 2 | Entrenamiento de los modelos              |
+| 3     | Persona 3 | Evaluación, comparación y visualizaciones |
 
 Modelos seleccionados en la investigación: **U-Net** con encoder ResNet34 (baseline), **U-Net++** y **SegFormer**.
 
@@ -32,14 +32,14 @@ Modelos seleccionados en la investigación: **U-Net** con encoder ResNet34 (base
 
 - `src/preprocess.py` funcionando.
 - `data/splits.csv` con el id de cada imagen y el conjunto al que pertenece.
-- Los `DataLoader` corriendo en Kaggle.
+- Los `DataLoader` funcionando.
 
 ## Persona 2: Entrenamiento de los modelos
 
 **Qué hace**
 
 - Escribir un loop de entrenamiento común para los 3 modelos: pérdida Dice + BCE, early stopping y guardado del mejor checkpoint según el Dice de validación.
-- Entrenar U-Net (baseline), U-Net++ y SegFormer en Kaggle con GPU (`segmentation_models_pytorch` para U-Net y U-Net++, `transformers` para SegFormer).
+- Entrenar U-Net (baseline), U-Net++ y SegFormer en local con GPU (`segmentation_models_pytorch` para U-Net y U-Net++, `transformers` para SegFormer).
 - Ajustar hiperparámetros: learning rate, tamaño de imagen y encoder. Registrar cada experimento.
 
 **Entrega**
@@ -55,10 +55,10 @@ Modelos seleccionados en la investigación: **U-Net** con encoder ResNet34 (base
 - Evaluar los 3 modelos en el conjunto de prueba: Dice, IoU, Dice por órgano y tiempo de inferencia.
 - Guardar los resultados en `metrics.csv` (por imagen y por modelo), que después usará la aplicación.
 - Generar al menos 3 visualizaciones estáticas con colores adecuados:
-  1. Comparación de Dice e IoU por modelo.
-  2. Dice por órgano para cada modelo.
-  3. Curvas de pérdida y Dice de entrenamiento y validación.
-  4. Ejemplos de imagen original, máscara real y predicción de cada modelo.
+    1. Comparación de Dice e IoU por modelo.
+    2. Dice por órgano para cada modelo.
+    3. Curvas de pérdida y Dice de entrenamiento y validación.
+    4. Ejemplos de imagen original, máscara real y predicción de cada modelo.
 - Discutir los resultados y seleccionar el mejor modelo, relacionándolo con los hallazgos del análisis exploratorio (por ejemplo, órganos con FTU pequeñas o con pocas imágenes).
 
 **Entrega**
@@ -69,5 +69,5 @@ Modelos seleccionados en la investigación: **U-Net** con encoder ResNet34 (base
 ## Cosas que hay que acordar antes de empezar
 
 - **Formato de `splits.csv`, `historial.csv` y `metrics.csv`**: definirlo desde el inicio para que cada persona reciba lo que espera.
-- **Cuota de GPU en Kaggle**: son unas 30 horas por semana por cuenta. Si a la Persona 2 no le alcanza, puede entrenar algún modelo con la cuenta de otra persona.
-- **Pasar el turno**: el entrenamiento corre en Kaggle, así que antes de pasarle el turno a la siguiente persona hay que descargar el notebook ejecutado y subirlo al repositorio. Los pesos de los modelos pesan mucho para GitHub; guárdenlos como dataset de Kaggle y compartan el enlace.
+- **Datos**: cada persona descarga una vez `train_images/` en `data/` (ver el README). Las imágenes y la caché no se suben al repositorio.
+- **Pasar el turno**: antes de pasarle el turno a la siguiente persona, subir el notebook ejecutado al repositorio. Los pesos de los modelos pesan mucho para GitHub; compártanlos por Google Drive.

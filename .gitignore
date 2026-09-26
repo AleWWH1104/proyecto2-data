@@ -1,7 +1,9 @@
 # Datos (no versionar, son de Kaggle)
 data/*
 !data/.gitkeep
+!data/splits.csv
 *.csv
+!data/splits.csv
 *.csv.zip
 
 # Jupyter
