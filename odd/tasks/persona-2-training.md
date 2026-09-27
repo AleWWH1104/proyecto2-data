@@ -12,7 +12,7 @@ La sección asignada a la Persona 2 está vacía. El repositorio ya contiene las
 
 - Implementar la infraestructura común de entrenamiento con pérdida Dice + BCE, validación, early stopping y checkpoints.
 - Integrar U-Net ResNet34, U-Net++ ResNet34 y SegFormer MIT-B0.
-- Configurar una ejecución local viable a 512 px y batch pequeño.
+- Configurar una ejecución local conservadora a 384 px y batch físico 1.
 - Registrar historial y experimentos en formatos reutilizables por la Persona 3.
 - Ejecutar pruebas de humo; no ejecutar entrenamientos completos de horas o días.
 - Endurecer la ejecución para una RTX 4050 Laptop de 6 GB como objetivo mínimo, cubriendo también la RTX 4060 Laptop de 8 GB.
@@ -69,6 +69,8 @@ La sección asignada a la Persona 2 está vacía. El repositorio ya contiene las
 - Commit P2-3: `c5005d8` (`docs(training): verify persona 2 workflow`).
 - P2-4 completada sin ejecutar CUDA real: el perfil usa 384 px, batch físico 1, acumulación de 2 pasos y AMP; el preflight realiza un paso AdamW completo para cada modelo antes de crear artefactos o entrenar.
 - Verificación P2-4: 17 pruebas unitarias y de contrato offline (OK), compilación de `src` y `tests` (OK) y `git diff --check` (OK). El preflight CUDA real queda pendiente para la GPU objetivo.
+- Commits P2-4: `0f3f806` (`feat(training): harden GPU memory usage`) y `24b373d` (`fix(training): preserve non-CUDA execution`).
+- Revisión RDD P2-4: `review-c1543ac359158c49`, aprobada y reconocida después de corregir la regresión que impedía entrenar en CPU o MPS. Quedaron como seguimientos no bloqueantes aclarar que el batch efectivo es nominal en la última ventana parcial y ponderar por imagen si en el futuro se usa batch físico mayor que 1.
 
 ## Estimación de entrega
 
