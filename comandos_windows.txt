@@ -1,0 +1,12 @@
+# Ejecute una línea a la vez. No pegue este archivo como un bloque.
+# Reemplace únicamente esta ruta por la carpeta local del repositorio.
+$Repositorio = "C:\RUTA\AL\PROYECTO\proyecto2-data"
+Set-Location -LiteralPath $Repositorio
+# Inicie Claude y pídale que siga CLAUDE.md para ejecutar e inspeccionar Verify y Preflight.
+claude
+# Dentro de Claude, las etapas autorizadas se ejecutan en este orden:
+# powershell.exe -NoProfile -File scripts/windows_training.ps1 -Stage Verify
+# powershell.exe -NoProfile -File scripts/windows_training.ps1 -Stage Preflight
+# Cuando Claude confirme que ambas evidencias están limpias, confirme Train explícitamente y salga de Claude.
+# Ya de regreso en esta terminal PowerShell nativa visible, ejecute manualmente:
+powershell.exe -NoProfile -File scripts/windows_training.ps1 -Stage Train

@@ -9,6 +9,9 @@ data/*
 # Jupyter
 .ipynb_checkpoints/
 
+# Estado y logs locales del arnés de Claude Code
+.claude/runtime/
+
 # Python
 __pycache__/
 *.pyc

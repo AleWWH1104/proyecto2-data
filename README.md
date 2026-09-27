@@ -85,13 +85,7 @@ La división completa está en [`docs/division_avances_resultados.md`](docs/divi
 
 La infraestructura y la sección 3 están implementadas y verificadas con pruebas rápidas y offline. Todavía no se ejecutó el entrenamiento completo: no existen checkpoints, historiales finales ni resultados de Dice que se puedan reportar.
 
-Para realizar esa ejecución de forma consciente:
-
-```bash
-uv run jupyter notebook proyecto2-resultados.ipynb
-```
-
-Después de ejecutar las secciones 1 y 2, en la sección 3 se deben revisar los hiperparámetros y activar `EJECUTAR_PREPARACION = True` y `EJECUTAR_ENTRENAMIENTO = True`. `PESOS_PREENTRENADOS = True` permite descargar los pesos iniciales; para una ejecución completamente offline debe cambiarse a `False`. Con las banderas predeterminadas en `False`, la sección no crea caché ni artefactos, no descarga pesos, no entrena y no ejecuta operaciones CUDA.
+El camino autorizado para la ejecución final es el arnés de PowerShell descrito en [`docs/ejecucion_entrenamiento_windows.md`](docs/ejecucion_entrenamiento_windows.md); `comandos_windows.txt` contiene la secuencia para la operadora. El notebook conserva la configuración y el contexto como referencia, pero no se usa para iniciar el entrenamiento final ni se editan sus banderas.
 
 El perfil predeterminado prioriza completar el flujo en una **NVIDIA GeForce RTX 4050 Laptop de 6 GB** y también es aplicable a una RTX 4060 Laptop de 8 GB:
 
@@ -101,7 +95,7 @@ El perfil predeterminado prioriza completar el flujo en una **NVIDIA GeForce RTX
 - batch efectivo: **2 imágenes** (`1 × 2`) antes de cada actualización del optimizador;
 - precisión mixta (AMP) cuando el dispositivo es CUDA.
 
-Al activar el entrenamiento completo, primero se ejecuta un preflight separado para U-Net, U-Net++ y SegFormer. Cada prueba realiza forward, adaptación de logits, pérdida Dice + BCE, backward y un paso AdamW para materializar su estado; además informa los picos de memoria CUDA asignada y reservada. La memoria se limpia entre modelos y un OOM detiene el flujo antes de crear artefactos o iniciar el entrenamiento. Que el preflight termine no garantiza disponibilidad posterior si otros procesos comienzan a consumir GPU.
+Antes del entrenamiento completo, el arnés ejecuta un preflight separado para U-Net, U-Net++ y SegFormer. Cada prueba realiza forward, adaptación de logits, pérdida Dice + BCE, backward y un paso AdamW para materializar su estado; además informa los picos de memoria CUDA asignada y reservada. La memoria se limpia entre modelos y un OOM detiene el flujo antes de iniciar el entrenamiento. Que el preflight termine no garantiza disponibilidad posterior si otros procesos comienzan a consumir GPU.
 
 La entrega esperada se escribe en `data/artefactos_entrenamiento/`:
 
@@ -119,9 +113,9 @@ for batch in loaders["train"]:
     mascaras = batch["mask"].to(device)    # (8, 1, 768, 768), valores 0 y 1
 ```
 
-- Las librerías de modelos ya están declaradas en `pyproject.toml`; `uv sync` instala las versiones bloqueadas.
-- GPU: `device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"` funciona con NVIDIA y con Mac de chip M.
-- Si el preflight falla por memoria aun con batch físico 1, cierre otros procesos que usen la GPU o reduzca `RESOLUCION` por debajo de 384 y use un `CACHE_DIR` correspondiente. La acumulación conserva el batch efectivo, pero no reduce la memoria de una sola pasada.
+- Las librerías de modelos ya están declaradas en `pyproject.toml`; `uv sync --frozen` instala las versiones bloqueadas.
+- El perfil operativo exige CUDA en Windows nativo y conserva el split `test` exclusivamente para Persona 3.
+- Si el preflight falla por memoria con batch físico 1, cierre otros procesos que usen la GPU y repita desde `Verify`; no cambie el perfil conservador durante el handoff.
 
 ### Persona 3: cómo empezar
 
