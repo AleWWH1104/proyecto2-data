@@ -212,8 +212,15 @@ class HubmapDataset(Dataset):
         }
 
 
-def crear_dataloaders(splits, cache_dir, size=IMG_SIZE, batch_size=8, num_workers=2):
-    """Crea un DataLoader por conjunto a partir del DataFrame de splits."""
+def crear_dataloaders(
+    splits,
+    cache_dir,
+    size=IMG_SIZE,
+    batch_size=8,
+    num_workers=2,
+    drop_last_train=False,
+):
+    """Crea un DataLoader por conjunto sin descartar imágenes por defecto."""
     loaders = {}
     for split in ("train", "val", "test"):
         ds = HubmapDataset(splits[splits["split"] == split], cache_dir, transformaciones(split, size))
@@ -221,7 +228,7 @@ def crear_dataloaders(splits, cache_dir, size=IMG_SIZE, batch_size=8, num_worker
             ds,
             batch_size=batch_size,
             shuffle=(split == "train"),
-            drop_last=(split == "train"),
+            drop_last=(split == "train" and drop_last_train),
             num_workers=num_workers,
             pin_memory=torch.cuda.is_available(),
         )

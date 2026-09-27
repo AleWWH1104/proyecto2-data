@@ -23,12 +23,12 @@ La sección asignada a la Persona 2 está vacía. El repositorio ya contiene las
 - Usar logits de un canal y redimensionar la salida de SegFormer antes de calcular pérdida o métricas.
 - Mantener código y documentación en español neutral, coherente con el repositorio.
 - TDD no configurado; se aplicarán verificaciones funcionales y pruebas de humo.
-- Estrategia de entrega: `ask-on-risk`.
+- Estrategia de entrega: `ask-on-risk`; al superar la guía de 400 líneas se eligió `stacked-to-main` para futuras PRs.
 
 ## Tareas
 
 - [x] **P2-1 — Preparar dependencias y módulo de entrenamiento.** Agregar dependencias reproducibles e implementar pérdida, Dice, adaptación de logits, entrenamiento/validación, early stopping y checkpoints.
-- [ ] **P2-2 — Integrar los tres modelos y la sección 3.** Completar el notebook con configuración, fábricas de U-Net, U-Net++ y SegFormer-B0, ejecución controlada, historial y tabla de experimentos.
+- [x] **P2-2 — Integrar los tres modelos y la sección 3.** Completar el notebook con configuración, fábricas de U-Net, U-Net++ y SegFormer-B0, ejecución controlada, historial y tabla de experimentos.
 - [ ] **P2-3 — Verificar y documentar la entrega.** Ejecutar pruebas sintéticas/cortas, comprobar que `test` no se usa durante entrenamiento y documentar formatos, límites y comandos de ejecución.
 
 ## Criterios de aceptación
@@ -53,7 +53,11 @@ La sección asignada a la Persona 2 está vacía. El repositorio ya contiene las
 - Rama de trabajo: `feat/persona-2-training`.
 - P2-1 completada: `src/training.py` contiene el flujo común y `tests/test_training.py` cubre pérdida/backward, adaptación de SegFormer, métricas ponderadas, early stopping y checkpoints.
 - Verificación P2-1: `uv run python -m unittest tests/test_training.py -v` (5 pruebas, OK), `uv run python -m compileall src tests` (OK) y `git diff --check` (OK).
-- Próximo paso: P2-2.
+- Commit P2-1: `0851ea4` (`feat(training): add reusable segmentation training loop`). Evaluación RDD: riesgo medio por cambio de dependencias, diferida al cierre de la porción de entrega.
+- Estrategia de cadena elegida: PRs apiladas hacia `main`; cada unidad debe poder verificarse e integrarse en orden.
+- P2-2 completada sin ejecutar entrenamiento ni descargar pesos: fábricas offline para los tres modelos, sección 3 con banderas seguras, artefactos estables y uso completo del último lote de entrenamiento.
+- Verificación P2-2: 8 pruebas unitarias y de humo en CPU (OK), compilación de `src` y `tests` (OK), 16 celdas de código del notebook compiladas y sección 3 sin acceso al cargador de prueba, `git diff --check` (OK).
+- Próximo paso: P2-3.
 
 ## Estimación de entrega
 

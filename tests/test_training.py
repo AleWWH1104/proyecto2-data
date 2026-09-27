@@ -5,10 +5,14 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 
+import cv2
+import numpy as np
+import pandas as pd
 import torch
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
 
+from src.preprocess import crear_dataloaders
 from src.training import (
     PerdidaBCEDice,
     adaptar_logits,
@@ -45,6 +49,32 @@ class ModeloMinimo(nn.Module):
 
 
 class TrainingTest(unittest.TestCase):
+    def test_dataloader_conserva_ultimo_lote_de_entrenamiento(self) -> None:
+        filas = [
+            {"id": indice, "organ": "kidney", "split": split}
+            for indice, split in enumerate(["train"] * 5 + ["val", "test"])
+        ]
+
+        with tempfile.TemporaryDirectory() as directorio:
+            ruta = Path(directorio)
+            for fila in filas:
+                imagen = np.zeros((8, 8, 3), dtype=np.uint8)
+                mascara = np.zeros((8, 8), dtype=np.uint8)
+                cv2.imwrite(str(ruta / f"{fila['id']}.png"), imagen)
+                cv2.imwrite(str(ruta / f"{fila['id']}_mask.png"), mascara)
+
+            cargador = crear_dataloaders(
+                pd.DataFrame(filas),
+                ruta,
+                size=8,
+                batch_size=2,
+                num_workers=0,
+            )["train"]
+            imagenes_vistas = sum(len(lote["id"]) for lote in cargador)
+
+        self.assertFalse(cargador.drop_last)
+        self.assertEqual(imagenes_vistas, 5)
+
     def test_perdida_conserva_forma_y_permite_backward(self) -> None:
         logits = torch.randn(2, 1, 8, 6, requires_grad=True)
         mascaras = torch.randint(0, 2, (2, 1, 8, 6)).float()
