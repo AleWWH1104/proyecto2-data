@@ -61,7 +61,7 @@ La sección asignada a la Persona 2 está vacía. El repositorio ya contiene las
 - La revisión de P2-2 dejó un `WARNING` no bloqueante: una `mejora_minima` negativa podía reemplazar el mejor checkpoint por uno peor. P2-3 lo resolvió validando que el valor sea mayor o igual que cero y agregando una prueba específica, sin reabrir la revisión aprobada.
 - P2-3 completada: el contrato del notebook compila todas las celdas y ejecuta solo la sección 3 con sus banderas seguras y contexto mínimo. Verifica de forma offline que no se crea caché ni `data/artefactos_entrenamiento/`, no se descargan pesos, no se entrena y no se consulta la partición `test`.
 - Verificación P2-3: `uv run python -m unittest discover -s tests -v` (10 pruebas, OK), `uv run python -m compileall src tests` (OK), `git diff --check` (OK) y ausencia confirmada de `data/artefactos_entrenamiento/` después de las pruebas.
-- Commit P2-3: `<pendiente de completar por el proceso padre>`.
+- Commit P2-3: `c5005d8` (`docs(training): verify persona 2 workflow`).
 
 ## Estimación de entrega
 
