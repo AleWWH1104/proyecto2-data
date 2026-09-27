@@ -4,6 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import Mock, patch
 
 import cv2
 import numpy as np
@@ -18,6 +19,7 @@ from src.training import (
     adaptar_logits,
     cargar_checkpoint,
     entrenar_modelo,
+    ejecutar_preflight_cuda,
     ejecutar_epoca,
 )
 
@@ -48,7 +50,119 @@ class ModeloMinimo(nn.Module):
         return self.capa(imagenes)
 
 
+class SGDContado(torch.optim.SGD):
+    def __init__(self, parametros: object) -> None:
+        super().__init__(parametros, lr=0.1)
+        self.pasos = 0
+
+    def step(self, closure: object = None) -> object:
+        self.pasos += 1
+        return super().step(closure)
+
+
 class TrainingTest(unittest.TestCase):
+    def test_acumulacion_hace_un_paso_por_ventana_incluida_la_parcial(self) -> None:
+        cargador = DataLoader(DatasetMinimo(5), batch_size=1, shuffle=False)
+        modelo = ModeloMinimo()
+        optimizador = SGDContado(modelo.parameters())
+
+        ejecutar_epoca(
+            modelo,
+            cargador,
+            PerdidaBCEDice(),
+            dispositivo="cpu",
+            optimizador=optimizador,
+            acumulacion_gradientes=2,
+        )
+
+        self.assertEqual(optimizador.pasos, 3)
+        self.assertTrue(all(parametro.grad is None for parametro in modelo.parameters()))
+
+    def test_acumulacion_uno_conserva_un_paso_por_lote(self) -> None:
+        cargador = DataLoader(DatasetMinimo(3), batch_size=1, shuffle=False)
+        modelo = ModeloMinimo()
+        optimizador = SGDContado(modelo.parameters())
+
+        ejecutar_epoca(
+            modelo,
+            cargador,
+            PerdidaBCEDice(),
+            dispositivo="cpu",
+            optimizador=optimizador,
+        )
+
+        self.assertEqual(optimizador.pasos, 3)
+
+    def test_rechaza_acumulacion_invalida(self) -> None:
+        cargador = DataLoader(DatasetMinimo(2), batch_size=1, shuffle=False)
+
+        for valor in (0, -1, 1.5, True):
+            with self.subTest(valor=valor):
+                with self.assertRaisesRegex(ValueError, "acumulacion_gradientes"):
+                    ejecutar_epoca(
+                        ModeloMinimo(),
+                        cargador,
+                        PerdidaBCEDice(),
+                        dispositivo="cpu",
+                        acumulacion_gradientes=valor,
+                    )
+
+    def test_preflight_orquesta_modelos_sin_fingir_cuda(self) -> None:
+        eventos = []
+
+        def crear(nombre: str) -> nn.Module:
+            eventos.append(("crear", nombre))
+            modelo = ModeloMinimo()
+            modelo.nombre_preflight = nombre
+            return modelo
+
+        def medir(**argumentos: object) -> dict[str, float]:
+            modelo = argumentos["modelo"]
+            eventos.append(("medir", modelo.nombre_preflight))
+            return {"pico_asignado_mib": 100.0, "pico_reservado_mib": 120.0}
+
+        resultado = ejecutar_preflight_cuda(
+            ["modelo_a", "modelo_b"],
+            crear,
+            resolucion=32,
+            medidor=medir,
+        )
+
+        self.assertEqual(
+            eventos,
+            [
+                ("crear", "modelo_a"),
+                ("medir", "modelo_a"),
+                ("crear", "modelo_b"),
+                ("medir", "modelo_b"),
+            ],
+        )
+        self.assertEqual(resultado["modelo"].tolist(), ["modelo_a", "modelo_b"])
+
+    def test_preflight_real_requiere_cuda_disponible(self) -> None:
+        fabrica = Mock(side_effect=AssertionError("No debe crear un modelo"))
+
+        with patch("src.training.torch.cuda.is_available", return_value=False):
+            with self.assertRaisesRegex(RuntimeError, "requiere una GPU CUDA"):
+                ejecutar_preflight_cuda(
+                    ["unet_resnet34"],
+                    fabrica,
+                    resolucion=384,
+                )
+
+        fabrica.assert_not_called()
+
+    def test_preflight_convierte_oom_en_fallo_accionable(self) -> None:
+        medidor = Mock(side_effect=torch.cuda.OutOfMemoryError("CUDA out of memory"))
+
+        with self.assertRaisesRegex(RuntimeError, "no inicie el entrenamiento completo"):
+            ejecutar_preflight_cuda(
+                ["unet_resnet34"],
+                lambda nombre: ModeloMinimo(),
+                resolucion=384,
+                medidor=medidor,
+            )
+
     def test_rechaza_mejora_minima_negativa(self) -> None:
         cargador = DataLoader(DatasetMinimo(2), batch_size=2, shuffle=False)
 

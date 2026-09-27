@@ -15,6 +15,7 @@ La sección asignada a la Persona 2 está vacía. El repositorio ya contiene las
 - Configurar una ejecución local viable a 512 px y batch pequeño.
 - Registrar historial y experimentos en formatos reutilizables por la Persona 3.
 - Ejecutar pruebas de humo; no ejecutar entrenamientos completos de horas o días.
+- Endurecer la ejecución para una RTX 4050 Laptop de 6 GB como objetivo mínimo, cubriendo también la RTX 4060 Laptop de 8 GB.
 - No modificar `data/splits.csv`, no versionar pesos ni archivos de caché.
 
 ## Restricciones
@@ -30,6 +31,7 @@ La sección asignada a la Persona 2 está vacía. El repositorio ya contiene las
 - [x] **P2-1 — Preparar dependencias y módulo de entrenamiento.** Agregar dependencias reproducibles e implementar pérdida, Dice, adaptación de logits, entrenamiento/validación, early stopping y checkpoints.
 - [x] **P2-2 — Integrar los tres modelos y la sección 3.** Completar el notebook con configuración, fábricas de U-Net, U-Net++ y SegFormer-B0, ejecución controlada, historial y tabla de experimentos.
 - [x] **P2-3 — Verificar y documentar la entrega.** Ejecutar pruebas sintéticas/cortas, comprobar que `test` no se usa durante entrenamiento y documentar formatos, límites y comandos de ejecución.
+- [x] **P2-4 — Evitar fallos por memoria en GPU de 6 GB.** Usar una configuración conservadora, soportar acumulación de gradientes y ejecutar una prueba previa de memoria CUDA antes del entrenamiento completo.
 
 ## Criterios de aceptación
 
@@ -39,6 +41,8 @@ La sección asignada a la Persona 2 está vacía. El repositorio ya contiene las
 - El historial y la tabla de experimentos tienen un esquema estable y se guardan fuera de rutas ignoradas cuando corresponda.
 - El notebook puede ejecutarse en modo de prueba sin entrenar los tres modelos completamente.
 - La entrega explica que los pesos finales requieren una ejecución prolongada o hardware acelerado.
+- La configuración predeterminada usa batch físico 1 y puede conservar un batch efectivo mayor mediante acumulación de gradientes.
+- Antes del entrenamiento completo, una prueba CUDA ejecuta forward, backward y paso del optimizador para cada modelo, mide el pico de memoria y falla temprano con una indicación accionable si la configuración no cabe.
 
 ## Verificaciones aplicables
 
@@ -46,6 +50,7 @@ La sección asignada a la Persona 2 está vacía. El repositorio ya contiene las
 - Pruebas unitarias o sintéticas del cálculo de pérdida, adaptación de salida, checkpoint y early stopping.
 - Prueba de humo de los tres modelos con entradas pequeñas, sin descargar pesos cuando se pruebe offline.
 - Inspección estructural del notebook y ejecución de sus celdas de entrenamiento en modo seguro.
+- Pruebas de regresión para acumulación de gradientes y para el contrato de preflight sin requerir una GPU local.
 
 ## Progreso y evidencia
 
@@ -62,6 +67,8 @@ La sección asignada a la Persona 2 está vacía. El repositorio ya contiene las
 - P2-3 completada: el contrato del notebook compila todas las celdas y ejecuta solo la sección 3 con sus banderas seguras y contexto mínimo. Verifica de forma offline que no se crea caché ni `data/artefactos_entrenamiento/`, no se descargan pesos, no se entrena y no se consulta la partición `test`.
 - Verificación P2-3: `uv run python -m unittest discover -s tests -v` (10 pruebas, OK), `uv run python -m compileall src tests` (OK), `git diff --check` (OK) y ausencia confirmada de `data/artefactos_entrenamiento/` después de las pruebas.
 - Commit P2-3: `c5005d8` (`docs(training): verify persona 2 workflow`).
+- P2-4 completada sin ejecutar CUDA real: el perfil usa 384 px, batch físico 1, acumulación de 2 pasos y AMP; el preflight realiza un paso AdamW completo para cada modelo antes de crear artefactos o entrenar.
+- Verificación P2-4: 17 pruebas unitarias y de contrato offline (OK), compilación de `src` y `tests` (OK) y `git diff --check` (OK). El preflight CUDA real queda pendiente para la GPU objetivo.
 
 ## Estimación de entrega
 

@@ -99,6 +99,10 @@ class NotebookContractTest(unittest.TestCase):
                     "src.training.entrenar_modelo",
                     side_effect=AssertionError("No debe entrenar modelos"),
                 ) as entrenar_modelo,
+                patch(
+                    "src.training.ejecutar_preflight_cuda",
+                    side_effect=AssertionError("No debe acceder a CUDA"),
+                ) as ejecutar_preflight_cuda,
             ):
                 for celda in celdas_seccion_3:
                     exec(
@@ -112,7 +116,11 @@ class NotebookContractTest(unittest.TestCase):
 
             self.assertFalse(contexto["EJECUTAR_PREPARACION"])
             self.assertFalse(contexto["EJECUTAR_ENTRENAMIENTO"])
-            self.assertFalse((data_dir / "cache_512").exists())
+            self.assertEqual(contexto["RESOLUCION"], 384)
+            self.assertEqual(contexto["BATCH_ENTRENAMIENTO"], 1)
+            self.assertEqual(contexto["ACUMULACION_GRADIENTES"], 2)
+            self.assertEqual(contexto["BATCH_EFECTIVO"], 2)
+            self.assertFalse((data_dir / "cache_384").exists())
             self.assertFalse((data_dir / "artefactos_entrenamiento").exists())
             self.assertFalse((temporal / "hf-cache").exists())
             self.assertFalse((temporal / "torch-cache").exists())
@@ -121,6 +129,24 @@ class NotebookContractTest(unittest.TestCase):
             crear_dataloaders.assert_not_called()
             crear_modelo.assert_not_called()
             entrenar_modelo.assert_not_called()
+            ejecutar_preflight_cuda.assert_not_called()
+
+    def test_preflight_aparece_antes_del_entrenamiento_y_de_los_artefactos(self) -> None:
+        notebook = json.loads(RUTA_NOTEBOOK.read_text(encoding="utf-8"))
+        celda_entrenamiento = next(
+            "".join(celda["source"])
+            for celda in notebook["cells"]
+            if celda["cell_type"] == "code"
+            and "if EJECUTAR_ENTRENAMIENTO:" in "".join(celda["source"])
+        )
+
+        posicion_preflight = celda_entrenamiento.index("resultados_preflight = ejecutar_preflight_cuda")
+        posicion_artefactos = celda_entrenamiento.index("RUTA_ARTEFACTOS.mkdir")
+        posicion_entrenamiento = celda_entrenamiento.index("resultado = entrenar_modelo")
+
+        self.assertLess(posicion_preflight, posicion_artefactos)
+        self.assertLess(posicion_preflight, posicion_entrenamiento)
+        self.assertIn("acumulacion_gradientes=ACUMULACION_GRADIENTES", celda_entrenamiento)
 
 
 if __name__ == "__main__":
