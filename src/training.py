@@ -255,6 +255,8 @@ def entrenar_modelo(
         raise ValueError("epocas debe ser al menos 1.")
     if paciencia < 1:
         raise ValueError("paciencia debe ser al menos 1.")
+    if not mejora_minima >= 0.0:
+        raise ValueError("mejora_minima debe ser mayor o igual que 0.")
 
     fijar_semilla(seed)
     dispositivo = torch.device(dispositivo)

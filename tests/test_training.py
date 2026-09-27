@@ -49,6 +49,22 @@ class ModeloMinimo(nn.Module):
 
 
 class TrainingTest(unittest.TestCase):
+    def test_rechaza_mejora_minima_negativa(self) -> None:
+        cargador = DataLoader(DatasetMinimo(2), batch_size=2, shuffle=False)
+
+        with tempfile.TemporaryDirectory() as directorio:
+            ruta = Path(directorio) / "modelo.pt"
+            with self.assertRaisesRegex(ValueError, "mejora_minima"):
+                entrenar_modelo(
+                    ModeloMinimo(),
+                    cargador,
+                    cargador,
+                    ruta,
+                    mejora_minima=-0.01,
+                )
+
+            self.assertFalse(ruta.exists())
+
     def test_dataloader_conserva_ultimo_lote_de_entrenamiento(self) -> None:
         filas = [
             {"id": indice, "organ": "kidney", "split": split}

@@ -29,7 +29,7 @@ La sección asignada a la Persona 2 está vacía. El repositorio ya contiene las
 
 - [x] **P2-1 — Preparar dependencias y módulo de entrenamiento.** Agregar dependencias reproducibles e implementar pérdida, Dice, adaptación de logits, entrenamiento/validación, early stopping y checkpoints.
 - [x] **P2-2 — Integrar los tres modelos y la sección 3.** Completar el notebook con configuración, fábricas de U-Net, U-Net++ y SegFormer-B0, ejecución controlada, historial y tabla de experimentos.
-- [ ] **P2-3 — Verificar y documentar la entrega.** Ejecutar pruebas sintéticas/cortas, comprobar que `test` no se usa durante entrenamiento y documentar formatos, límites y comandos de ejecución.
+- [x] **P2-3 — Verificar y documentar la entrega.** Ejecutar pruebas sintéticas/cortas, comprobar que `test` no se usa durante entrenamiento y documentar formatos, límites y comandos de ejecución.
 
 ## Criterios de aceptación
 
@@ -57,7 +57,11 @@ La sección asignada a la Persona 2 está vacía. El repositorio ya contiene las
 - Estrategia de cadena elegida: PRs apiladas hacia `main`; cada unidad debe poder verificarse e integrarse en orden.
 - P2-2 completada sin ejecutar entrenamiento ni descargar pesos: fábricas offline para los tres modelos, sección 3 con banderas seguras, artefactos estables y uso completo del último lote de entrenamiento.
 - Verificación P2-2: 8 pruebas unitarias y de humo en CPU (OK), compilación de `src` y `tests` (OK), 16 celdas de código del notebook compiladas y sección 3 sin acceso al cargador de prueba, `git diff --check` (OK).
-- Próximo paso: P2-3.
+- Commit P2-2: `ed5e804` (`feat(training): integrate segmentation model workflows`). Revisión aprobada y lineage reconocido: `review-fa8070c1d6ae0e85`.
+- La revisión de P2-2 dejó un `WARNING` no bloqueante: una `mejora_minima` negativa podía reemplazar el mejor checkpoint por uno peor. P2-3 lo resolvió validando que el valor sea mayor o igual que cero y agregando una prueba específica, sin reabrir la revisión aprobada.
+- P2-3 completada: el contrato del notebook compila todas las celdas y ejecuta solo la sección 3 con sus banderas seguras y contexto mínimo. Verifica de forma offline que no se crea caché ni `data/artefactos_entrenamiento/`, no se descargan pesos, no se entrena y no se consulta la partición `test`.
+- Verificación P2-3: `uv run python -m unittest discover -s tests -v` (10 pruebas, OK), `uv run python -m compileall src tests` (OK), `git diff --check` (OK) y ausencia confirmada de `data/artefactos_entrenamiento/` después de las pruebas.
+- Commit P2-3: `<pendiente de completar por el proceso padre>`.
 
 ## Estimación de entrega
 

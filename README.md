@@ -69,7 +69,7 @@ La división completa está en [`docs/division_avances_resultados.md`](docs/divi
 | Orden | Persona | Sección del notebook | Estado |
 | --- | --- | --- | --- |
 | 1 | Persona 1 | 2. Pipeline de datos | Terminada |
-| 2 | Persona 2 | 3. Entrenamiento de los modelos | Pendiente |
+| 2 | Persona 2 | 3. Entrenamiento de los modelos | Implementación lista y verificada; ejecución completa pendiente |
 | 3 | Persona 3 | 4. Evaluación, comparación y visualizaciones | Pendiente |
 
 ### Reglas para trabajar en el mismo notebook
@@ -81,9 +81,25 @@ La división completa está en [`docs/division_avances_resultados.md`](docs/divi
 - No subas imágenes, la caché ni los pesos de los modelos (`.pth`); pesan demasiado para GitHub. Los pesos se comparten por Google Drive.
 - No tengas el notebook abierto en Jupyter mientras otra herramienta lo edita: Jupyter lo guarda solo y puede sobrescribir los cambios.
 
-### Persona 2: cómo empezar
+### Persona 2: estado y ejecución
 
-Todo lo que necesitas del pipeline está en la sección **2.7 Entrega para la Persona 2** del notebook. En resumen:
+La infraestructura y la sección 3 están implementadas y verificadas con pruebas rápidas y offline. Todavía no se ejecutó el entrenamiento completo: no existen checkpoints, historiales finales ni resultados de Dice que se puedan reportar.
+
+Para realizar esa ejecución de forma consciente:
+
+```bash
+uv run jupyter notebook proyecto2-resultados.ipynb
+```
+
+Después de ejecutar las secciones 1 y 2, en la sección 3 se deben revisar los hiperparámetros y activar `EJECUTAR_PREPARACION = True` y `EJECUTAR_ENTRENAMIENTO = True`. `PESOS_PREENTRENADOS = True` permite descargar los pesos iniciales; para una ejecución completamente offline debe cambiarse a `False`. Con las banderas predeterminadas en `False`, la sección no crea caché, no descarga pesos y no entrena.
+
+La entrega esperada se escribe en `data/artefactos_entrenamiento/`:
+
+- `checkpoints/<modelo>.pt`: mejor checkpoint por Dice de validación para cada modelo.
+- `historial_modelos.csv`: columnas `modelo, epoca, train_loss, train_dice, val_loss, val_dice`.
+- `experimentos_modelos.csv`: columnas `modelo, arquitectura_encoder, resolucion, batch, learning_rate, epocas_solicitadas, epocas_ejecutadas, mejor_epoca, mejor_val_dice, checkpoint, estado`.
+
+Todo lo necesario del pipeline está en la sección **2.7 Entrega para la Persona 2** del notebook. En resumen:
 
 ```python
 loaders = pp.crear_dataloaders(splits, CACHE_DIR, size=pp.IMG_SIZE, batch_size=BATCH_SIZE)
@@ -93,7 +109,7 @@ for batch in loaders["train"]:
     mascaras = batch["mask"].to(device)    # (8, 1, 768, 768), valores 0 y 1
 ```
 
-- Agrega las librerías de modelos con `uv add segmentation-models-pytorch transformers` (así quedan en `pyproject.toml` para los demás).
+- Las librerías de modelos ya están declaradas en `pyproject.toml`; `uv sync` instala las versiones bloqueadas.
 - GPU: `device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"` funciona con NVIDIA y con Mac de chip M.
 - Si te quedas sin memoria en la GPU, baja `BATCH_SIZE` o usa imágenes de 512 px (`size=512` en `preparar_cache` y `crear_dataloaders`, con otro `CACHE_DIR`).
 

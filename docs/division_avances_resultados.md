@@ -36,6 +36,10 @@ Modelos seleccionados en la investigación: **U-Net** con encoder ResNet34 (base
 
 ## Persona 2: Entrenamiento de los modelos
 
+**Estado**
+
+La implementación está lista y verificada con pruebas rápidas y offline. El entrenamiento completo sigue pendiente de una ejecución consciente, por lo que todavía no existen checkpoints, CSV finales ni métricas de validación reales para entregar.
+
 **Qué hace**
 
 - Escribir un loop de entrenamiento común para los 3 modelos: pérdida Dice + BCE, early stopping y guardado del mejor checkpoint según el Dice de validación.
@@ -44,9 +48,11 @@ Modelos seleccionados en la investigación: **U-Net** con encoder ResNet34 (base
 
 **Entrega**
 
-- Pesos de los 3 modelos (`.pth`).
-- Historial de pérdida y Dice por época de cada modelo (por ejemplo `historial.csv`).
-- Tabla de experimentos: qué hiperparámetros se probaron y qué Dice de validación dio cada uno.
+- `data/artefactos_entrenamiento/checkpoints/<modelo>.pt`: mejor checkpoint de cada uno de los 3 modelos según Dice de validación.
+- `data/artefactos_entrenamiento/historial_modelos.csv`: columnas `modelo, epoca, train_loss, train_dice, val_loss, val_dice`.
+- `data/artefactos_entrenamiento/experimentos_modelos.csv`: columnas `modelo, arquitectura_encoder, resolucion, batch, learning_rate, epocas_solicitadas, epocas_ejecutadas, mejor_epoca, mejor_val_dice, checkpoint, estado`.
+
+Para generar estos artefactos se abre el notebook con `uv run jupyter notebook proyecto2-resultados.ipynb`, se ejecutan las secciones previas y se activan de forma consciente `EJECUTAR_PREPARACION = True` y `EJECUTAR_ENTRENAMIENTO = True` en la sección 3. `PESOS_PREENTRENADOS = True` habilita la descarga de pesos iniciales; `False` mantiene la creación de modelos offline. Las banderas seguras predeterminadas no preparan caché, no descargan pesos y no entrenan. El conjunto `test` queda reservado para la Persona 3.
 
 ## Persona 3: Evaluación, comparación y visualizaciones
 
