@@ -144,6 +144,7 @@ class NotebookContractTest(unittest.TestCase):
         posicion_artefactos = celda_entrenamiento.index("RUTA_ARTEFACTOS.mkdir")
         posicion_entrenamiento = celda_entrenamiento.index("resultado = entrenar_modelo")
 
+        self.assertRegex(celda_entrenamiento, r'if DISPOSITIVO\.type == "cuda":\n\s+resultados_preflight = ejecutar_preflight_cuda')
         self.assertLess(posicion_preflight, posicion_artefactos)
         self.assertLess(posicion_preflight, posicion_entrenamiento)
         self.assertIn("acumulacion_gradientes=ACUMULACION_GRADIENTES", celda_entrenamiento)
