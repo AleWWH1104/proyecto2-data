@@ -52,11 +52,11 @@ La implementación está lista y verificada con pruebas rápidas y offline. El e
 - `data/artefactos_entrenamiento/historial_modelos.csv`: columnas `modelo, epoca, train_loss, train_dice, val_loss, val_dice`.
 - `data/artefactos_entrenamiento/experimentos_modelos.csv`: columnas `modelo, arquitectura_encoder, resolucion, batch, acumulacion_gradientes, batch_efectivo, learning_rate, epocas_solicitadas, epocas_ejecutadas, mejor_epoca, mejor_val_dice, checkpoint, estado`.
 
-Para generar estos artefactos se abre el notebook con `uv run jupyter notebook proyecto2-resultados.ipynb`, se ejecutan las secciones previas y se activan de forma consciente `EJECUTAR_PREPARACION = True` y `EJECUTAR_ENTRENAMIENTO = True` en la sección 3. `PESOS_PREENTRENADOS = True` habilita la descarga de pesos iniciales; `False` mantiene la creación de modelos offline. Las banderas seguras predeterminadas no preparan caché, no descargan pesos y no entrenan. El conjunto `test` queda reservado para la Persona 3.
+Estos artefactos se generan exclusivamente con el arnés de PowerShell documentado en `docs/ejecucion_entrenamiento_windows.md`. Claude ejecuta e inspecciona las etapas `Verify` y `Preflight`; después de la confirmación humana, la persona sale de Claude y ejecuta manualmente `powershell.exe -NoProfile -File scripts/windows_training.ps1 -Stage Train` en PowerShell de Windows nativo. El notebook es solo una referencia y no se editan sus banderas para entrenar. El conjunto `test` queda reservado para la Persona 3.
 
 La configuración conservadora para la RTX 4050 Laptop de 6 GB —y compatible con la RTX 4060 Laptop de 8 GB— usa resolución de **384 px**, batch físico **1**, acumulación de gradientes de **2 pasos**, batch efectivo **2** y AMP. El batch físico indica cuántas imágenes procesa simultáneamente la GPU; el efectivo indica cuántas contribuyen a una actualización de AdamW.
 
-Antes de cualquier entrenamiento o creación de artefactos, el notebook ejecuta un preflight CUDA para los tres modelos. Cada medición incluye forward, adaptación de logits, pérdida, backward y un paso del optimizador, por lo que también asigna el estado de AdamW. Se reportan los picos de memoria asignada y reservada, se libera memoria entre modelos y cualquier OOM produce un fallo temprano con acciones sugeridas. Este resultado corresponde al estado de la GPU durante la prueba y no garantiza que otros procesos no consuman memoria después.
+Antes de cualquier entrenamiento o creación de artefactos, el arnés ejecuta un preflight CUDA para los tres modelos. Cada medición incluye forward, adaptación de logits, pérdida, backward y un paso del optimizador, por lo que también asigna el estado de AdamW. Se reportan los picos de memoria asignada y reservada, se libera memoria entre modelos y cualquier OOM produce un fallo temprano con acciones sugeridas. Este resultado corresponde al estado de la GPU durante la prueba y no garantiza que otros procesos no consuman memoria después.
 
 ## Persona 3: Evaluación, comparación y visualizaciones
 
@@ -78,6 +78,6 @@ Antes de cualquier entrenamiento o creación de artefactos, el notebook ejecuta 
 
 ## Cosas que hay que acordar antes de empezar
 
-- **Formato de `splits.csv`, `historial.csv` y `metrics.csv`**: definirlo desde el inicio para que cada persona reciba lo que espera.
+- **Formato de `splits.csv`, `historial_modelos.csv` y `metrics.csv`**: definirlo desde el inicio para que cada persona reciba lo que espera.
 - **Datos**: cada persona descarga una vez `train_images/` en `data/` (ver el README). Las imágenes y la caché no se suben al repositorio.
-- **Pasar el turno**: antes de pasarle el turno a la siguiente persona, subir el notebook ejecutado al repositorio. Los pesos de los modelos pesan mucho para GitHub; compártanlos por Google Drive.
+- **Pasar el turno**: comprobar que `data/artefactos_entrenamiento/` contiene los tres checkpoints y ambos CSV, y compartir esa carpeta con la Persona 3 mediante Google Drive. El notebook permanece como referencia y los pesos no se suben a GitHub.
