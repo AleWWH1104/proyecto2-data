@@ -38,7 +38,7 @@ Modelos seleccionados en la investigación: **U-Net** con encoder ResNet34 (base
 
 **Estado**
 
-La implementación está lista y verificada con pruebas rápidas y offline. El entrenamiento completo sigue pendiente de una ejecución consciente, por lo que todavía no existen checkpoints, CSV finales ni métricas de validación reales para entregar.
+Terminada. El entrenamiento completo se ejecutó el 2026-10-01 en una RTX 4060 Laptop de 8 GB mediante el arnés de PowerShell, con los tres checkpoints y los dos CSV en `data/artefactos_entrenamiento/`. Mejor Dice de validación: SegFormer/MIT-B0 **0.6596** (época 5), U-Net/ResNet34 **0.6058** (época 8), U-Net++/ResNet34 **0.5256** (época 1). Los tres pararon por detención temprana; el de U-Net++ subestima al modelo porque lo cortó el ruido de validación mientras su `train_dice` seguía subiendo.
 
 **Qué hace**
 
@@ -80,4 +80,4 @@ Antes de cualquier entrenamiento o creación de artefactos, el arnés ejecuta un
 
 - **Formato de `splits.csv`, `historial_modelos.csv` y `metrics.csv`**: definirlo desde el inicio para que cada persona reciba lo que espera.
 - **Datos**: cada persona descarga una vez `train_images/` en `data/` (ver el README). Las imágenes y la caché no se suben al repositorio.
-- **Pasar el turno**: comprobar que `data/artefactos_entrenamiento/` contiene los tres checkpoints y ambos CSV, y compartir esa carpeta con la Persona 3 mediante Google Drive. El notebook permanece como referencia y los pesos no se suben a GitHub.
+- **Pasar el turno**: comprobar que `data/artefactos_entrenamiento/` contiene los tres checkpoints y ambos CSV, y compartir por Google Drive **esa carpeta más `data/cache_384/` y `data/train.csv`**. Con la caché incluida, la Persona 3 no descarga los 5.8 GB de `.tiff` ni necesita GPU: la sección 2 se condiciona a `HAY_CACHE`, no a `HAY_IMAGENES`. El notebook permanece como referencia y los pesos no se suben a GitHub.

@@ -14,7 +14,7 @@ data/
   train.csv                  Se descarga de Kaggle (no se sube al repo)
   train_images/              Se descarga de Kaggle (no se sube al repo)
   splits.csv                 División train/val/test (SÍ se sube: todos usan la misma)
-  cache_768/                 La genera el notebook (no se sube al repo)
+  cache_384/                 Imágenes y máscaras a 384 px (no se sube al repo; se comparte por Drive)
 docs/
   division_avances_resultados.md   Qué hace cada persona en esta fase
 informe/                     Informe en LaTeX, figuras y referencias.bib
@@ -50,7 +50,9 @@ data/
     ...           (351 archivos)
 ```
 
-El notebook del análisis exploratorio solo necesita `train.csv`. El de resultados necesita **todas** las imágenes.
+El notebook del análisis exploratorio solo necesita `train.csv`.
+
+**Los `.tiff` solo se necesitan para generar la caché.** La sección 2.2 crea una vez `data/cache_384/` (702 `.png`: 351 imágenes y 351 máscaras ya redimensionadas) y a partir de ahí todo —entrenamiento, evaluación y la app— lee de ahí. Quien reciba `data/cache_384/` por Drive puede trabajar **sin descargar los 5.8 GB**: es el caso de la Persona 3.
 
 ### 3. Abrir el notebook
 
@@ -58,9 +60,14 @@ El notebook del análisis exploratorio solo necesita `train.csv`. El de resultad
 uv run jupyter notebook proyecto2-resultados.ipynb
 ```
 
-Corre todas las celdas desde el inicio (Run All). La primera celda debe imprimir `Imágenes disponibles: True`; si dice `False`, revisa que las imágenes estén en `data/train_images/`.
+Corre todas las celdas desde el inicio (Run All). La primera celda imprime dos banderas:
 
-La primera vez, la sección 2.2 genera `data/cache_768/` con las imágenes redimensionadas. Tarda unos minutos y solo se hace una vez.
+- `TIFF originales: True` → se puede generar la caché.
+- `caché de 384 px: True` → la sección 2 completa y la sección 4 funcionan, haya `.tiff` o no.
+
+Si ambas son `False`, falta descargar `train_images/` o pedir `data/cache_384/`. Generar la caché tarda unos minutos y solo se hace una vez.
+
+**La sección 3 no se ejecuta desde el notebook.** Sus banderas quedan en `False` a propósito; el entrenamiento va por el arnés de PowerShell (ver más abajo).
 
 ## Fase 2: Resultados (trabajo en cadena)
 
@@ -69,7 +76,7 @@ La división completa está en [`docs/division_avances_resultados.md`](docs/divi
 | Orden | Persona | Sección del notebook | Estado |
 | --- | --- | --- | --- |
 | 1 | Persona 1 | 2. Pipeline de datos | Terminada |
-| 2 | Persona 2 | 3. Entrenamiento de los modelos | Implementación lista y verificada; ejecución completa pendiente |
+| 2 | Persona 2 | 3. Entrenamiento de los modelos | Terminada: los tres modelos entrenados y sus artefactos generados |
 | 3 | Persona 3 | 4. Evaluación, comparación y visualizaciones | Pendiente |
 
 ### Reglas para trabajar en el mismo notebook
@@ -83,7 +90,17 @@ La división completa está en [`docs/division_avances_resultados.md`](docs/divi
 
 ### Persona 2: estado y ejecución
 
-La infraestructura y la sección 3 están implementadas y verificadas con pruebas rápidas y offline. Todavía no se ejecutó el entrenamiento completo: no existen checkpoints, historiales finales ni resultados de Dice que se puedan reportar.
+El entrenamiento completo se ejecutó el **2026-10-01** en una RTX 4060 Laptop de 8 GB, por el arnés de PowerShell, y dejó los tres checkpoints y los dos CSV en `data/artefactos_entrenamiento/`. Mejor Dice de validación por modelo:
+
+| Modelo | Épocas ejecutadas | Mejor época | Mejor val Dice | Estado |
+| --- | --- | --- | --- | --- |
+| SegFormer / MIT-B0 | 10 | 5 | **0.6596** | detención temprana |
+| U-Net / ResNet34 | 13 | 8 | 0.6058 | detención temprana |
+| U-Net++ / ResNet34 | 6 | 1 | 0.5256 | detención temprana |
+
+Los tres pararon por early stopping (paciencia 5). **El valor de U-Net++ subestima al modelo**: su mejor época fue la 1 y su `train_dice` seguía subiendo (0.37 → 0.67), así que lo cortó el ruido de validación (53 imágenes de validación y batch efectivo 2), no una falta de aprendizaje. Conviene decirlo en la discusión en lugar de presentar 0.5256 como su techo.
+
+Como referencia, los tres primeros lugares del reto obtuvieron Dice ≈ 0.835 en el test privado, con resoluciones mayores, ensambles y pseudo-etiquetado; aquí se entrenó un solo modelo por arquitectura a 384 px con batch efectivo 2.
 
 El camino autorizado para la ejecución final es el arnés de PowerShell descrito en [`docs/ejecucion_entrenamiento_windows.md`](docs/ejecucion_entrenamiento_windows.md); `comandos_windows.txt` contiene la secuencia para la operadora. El notebook conserva la configuración y el contexto como referencia, pero no se usa para iniciar el entrenamiento final ni se editan sus banderas.
 
@@ -109,8 +126,8 @@ Todo lo necesario del pipeline está en la sección **2.7 Entrega para la Person
 loaders = pp.crear_dataloaders(splits, CACHE_DIR, size=pp.IMG_SIZE, batch_size=BATCH_SIZE)
 
 for batch in loaders["train"]:
-    imagenes = batch["image"].to(device)   # (8, 3, 768, 768)
-    mascaras = batch["mask"].to(device)    # (8, 1, 768, 768), valores 0 y 1
+    imagenes = batch["image"].to(device)   # (8, 3, 384, 384)
+    mascaras = batch["mask"].to(device)    # (8, 1, 384, 384), valores 0 y 1
 ```
 
 - Las librerías de modelos ya están declaradas en `pyproject.toml`; `uv sync --frozen` instala las versiones bloqueadas.
@@ -119,6 +136,26 @@ for batch in loaders["train"]:
 
 ### Persona 3: cómo empezar
 
-- Necesitas los pesos de los 3 modelos que te comparta la Persona 2 por Drive.
-- Evalúa con `loaders["test"]`, que no se usó para entrenar ni para elegir hiperparámetros.
-- Cada batch trae `batch["organ"]` para calcular el Dice por órgano.
+**No necesitas descargar las imágenes ni tener GPU.** La inferencia son 53 imágenes a 384 px por modelo: corre en CPU en minutos.
+
+1. `git pull` y `uv sync`.
+2. Copia de la carpeta de Drive que comparte la Persona 2, dentro de `data/`:
+
+```
+data/
+  splits.csv                     ya está en el repositorio
+  train.csv                      16 MB
+  cache_384/                     702 .png (351 imágenes y 351 máscaras)
+  artefactos_entrenamiento/
+    checkpoints/unet_resnet34.pt
+    checkpoints/unetplusplus_resnet34.pt
+    checkpoints/segformer_mit_b0.pt
+    historial_modelos.csv
+    experimentos_modelos.csv
+```
+
+3. Ejecuta la *Configuración inicial* y **toda la sección 2**. Debe imprimir `caché de 384 px: True` y `test : 53 imágenes`. No ejecutes la sección 3: sus banderas están en `False` a propósito.
+4. Evalúa con `loaders["test"]`, que no se usó para entrenar ni para elegir hiperparámetros. Cada batch trae `batch["organ"]` para el Dice por órgano.
+5. Carga cada checkpoint con `crear_modelo(nombre, pesos_preentrenados=False)` y `modelo.load_state_dict(estado["modelo"])`; el `.pt` guarda solo el `state_dict`. El ejemplo completo está en la sección **3.5** del notebook.
+
+Los checkpoints son de 384 px: evalúa a esa resolución o las métricas no serán comparables. Si mides **tiempo de inferencia** en CPU, dilo en el informe junto con el hardware.

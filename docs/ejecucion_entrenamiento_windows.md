@@ -77,3 +77,5 @@ Los hooks ayudan a impedir comandos accidentales de Claude Code, pero no convier
 ## Cierre y respaldo
 
 Al finalizar, compruebe que existen los tres checkpoints y ambos CSV, y lea `experimentos_modelos.csv` para confirmar los tres estados. Copie `data/artefactos_entrenamiento/` a un almacenamiento de respaldo acordado antes de entregar a Persona 3. No suba pesos, caché, logs ni estado a Git.
+
+Para el handoff a Persona 3, comparta también `data/cache_384/` (702 `.png`) y `data/train.csv`. Con esa caché, Persona 3 evalúa sin descargar los `.tiff` y sin GPU; la resolución de evaluación debe seguir siendo 384 px, la misma de los checkpoints. Después del entrenamiento, vuelva a ejecutar la sección 2 del notebook para regenerar sus salidas a 384 px: ya con la caché creada, `preparar_cache` no rehace archivos y la sección tarda alrededor de un minuto. No ejecute la sección 3 ni modifique sus banderas.

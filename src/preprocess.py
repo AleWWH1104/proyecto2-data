@@ -18,7 +18,10 @@ from torch.utils.data import DataLoader, Dataset
 
 # Todas las imágenes de entrenamiento vienen de HPA con 0.4 µm por píxel.
 PIXEL_SIZE_REF = 0.4
-IMG_SIZE = 768
+# Resolución única del proyecto. Es la misma con la que se entrenaron los tres
+# checkpoints, así que la evaluación y la aplicación deben usarla tal cual: una
+# GPU portátil de 6 a 8 GB no admite 768 px con estos modelos.
+IMG_SIZE = 384
 SEED = 42
 
 ORGANOS = ["kidney", "prostate", "largeintestine", "spleen", "lung"]
