@@ -25,3 +25,17 @@ dependencies = [
 
 [tool.uv]
 package = false
+
+# En Windows el wheel de torch de PyPI es CPU-only, así que el perfil operativo
+# (CUDA en Windows nativo) no se puede cumplir con el índice por defecto. Se fija
+# el índice cu130 de PyTorch, que corresponde a los controladores CUDA 13.x y
+# tiene wheel cp311 para win_amd64. torchvision va al mismo índice para no mezclar
+# una compilación +cpu con un torch +cu130.
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu130" }
+torchvision = { index = "pytorch-cu130" }

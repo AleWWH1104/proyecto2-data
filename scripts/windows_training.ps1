@@ -115,7 +115,26 @@ function Write-State([string]$CompletedStage, [string]$EvidencePath, [object]$Pr
 function Invoke-Logged([string]$Name, [scriptblock]$Action) {
     New-Item -ItemType Directory -Force -Path $Logs | Out-Null
     $Log = Join-Path $Logs ("{0}-{1}.log" -f $Name.ToLowerInvariant(), (Get-Date -Format "yyyyMMdd-HHmmss"))
-    & $Action *>&1 | Tee-Object -FilePath $Log | Out-Host
+    # Windows PowerShell 5.1 convierte cada línea de stderr de un ejecutable en un
+    # ErrorRecord. Con $ErrorActionPreference = "Stop" eso aborta la etapa aunque el
+    # proceso haya terminado en 0, y uv escribe su progreso normal en stderr: sin esto
+    # ninguna etapa llega a escribir su log. La preferencia se baja solo durante la
+    # llamada; la autoridad del gate sigue siendo el código de salida que se verifica
+    # abajo, y las líneas de stderr se conservan como texto en el log.
+    # Las herramientas requeridas ya se comprobaron en Assert-NativeWindows, así que un
+    # ejecutable ausente no puede pasar inadvertido por esta ventana.
+    $Global:LASTEXITCODE = 0
+    $PreferenciaAnterior = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        & $Action *>&1 |
+            ForEach-Object {
+                if ($_ -is [Management.Automation.ErrorRecord]) { $_.ToString() } else { $_ }
+            } |
+            Tee-Object -FilePath $Log | Out-Host
+    } finally {
+        $ErrorActionPreference = $PreferenciaAnterior
+    }
     if ($LASTEXITCODE -ne 0) { Stop-Handoff "$Name terminó con código $LASTEXITCODE. Revise $Log." }
     return $Log
 }
