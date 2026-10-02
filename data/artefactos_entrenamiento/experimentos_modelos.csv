@@ -1,0 +1,4 @@
+modelo,arquitectura_encoder,resolucion,batch,acumulacion_gradientes,batch_efectivo,learning_rate,epocas_solicitadas,epocas_ejecutadas,mejor_epoca,mejor_val_dice,checkpoint,estado
+unet_resnet34,U-Net / ResNet34,384,1,2,2,0.0001,20,13,8,0.6058117121124184,C:\Users\irisa\Documents\Trabajos_UVG\Semestre 8\DataScience\proyecto2-data\data\artefactos_entrenamiento\checkpoints\unet_resnet34.pt,detencion_temprana
+unetplusplus_resnet34,U-Net++ / ResNet34,384,1,2,2,0.0001,20,6,1,0.5255810537744524,C:\Users\irisa\Documents\Trabajos_UVG\Semestre 8\DataScience\proyecto2-data\data\artefactos_entrenamiento\checkpoints\unetplusplus_resnet34.pt,detencion_temprana
+segformer_mit_b0,SegFormer / MIT-B0,384,1,2,2,0.0001,20,10,5,0.6595930496696383,C:\Users\irisa\Documents\Trabajos_UVG\Semestre 8\DataScience\proyecto2-data\data\artefactos_entrenamiento\checkpoints\segformer_mit_b0.pt,detencion_temprana

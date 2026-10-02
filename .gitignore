@@ -6,6 +6,14 @@ data/*
 !data/splits.csv
 *.csv.zip
 
+# Métricas del entrenamiento: pesan KB y la Persona 3 las necesita para las curvas
+# de pérdida y Dice. Los checkpoints y la caché siguen fuera (cientos de MB) y se
+# comparten por Drive.
+!data/artefactos_entrenamiento/
+data/artefactos_entrenamiento/*
+!data/artefactos_entrenamiento/historial_modelos.csv
+!data/artefactos_entrenamiento/experimentos_modelos.csv
+
 # Jupyter
 .ipynb_checkpoints/
 
