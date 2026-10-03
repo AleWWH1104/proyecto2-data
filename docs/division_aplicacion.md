@@ -84,10 +84,13 @@ Va primero, porque desbloquea a los demás.
 
 - `uv add streamlit plotly` y subir `pyproject.toml` y `uv.lock`.
 - `app/Inicio.py`: título, descripción corta del reto, el modelo seleccionado y qué hace cada página.
-- `app/comun.py` con funciones cacheadas que usan las otras páginas:
-    - `cargar_datos()`: lee `train.csv`, `splits.csv`, `metrics.csv` e `historial_modelos.csv` (`@st.cache_data`).
-    - `cargar_modelo(nombre)`: usa `cargar_modelo_entrenado` en CPU (`@st.cache_resource`, para cargarlo una sola vez).
-    - Los nombres y colores de los modelos, importados de `informe/figuras_resultados.py`.
+- `app/comun.py` con lo que usan las otras páginas (se importa con `from comun import ...`):
+    - `cargar_datos()`: diccionario con `train` (incluye las columnas `split` y `proporcion_ftu`), `splits`, `metricas`, `historial` y `experimentos` (`@st.cache_data`).
+    - `cargar_modelo(nombre)`: el modelo entrenado en CPU, cargado una sola vez (`@st.cache_resource`).
+    - `MODELOS`, `NOMBRES_COMPLETOS`, `COLORES`, `CIAN` y `MODELO_SELECCIONADO`.
+    - `pp` (el módulo `src/preprocess.py`), `CACHE_DIR` y `archivos_faltantes()`.
+
+**Estado: hecho.**
 
 **Entrega:** `app/Inicio.py` y `app/comun.py`, y que `uv run streamlit run app/Inicio.py` abra la app.
 
@@ -108,7 +111,7 @@ Las dos páginas son gráficas interactivas a partir de CSV, sin correr modelos.
 **Página de exploración** (`app/pages/1_Exploracion.py`)
 
 - Filtros por órgano, fuente (HPA o HuBMAP) y sexo.
-- Gráficas de las variables usadas por los modelos: distribución por órgano, edad, tamaño de imagen, `pixel_size` y proporción de FTU (se calcula del RLE con `pp.rle_decode`, o sumando las longitudes del RLE como en `informe/figuras.py`).
+- Gráficas de las variables usadas por los modelos: distribución por órgano, edad, tamaño de imagen, `pixel_size` y proporción de FTU (`cargar_datos()["train"]["proporcion_ftu"]`).
 - Contar los hallazgos del análisis exploratorio que explican los resultados: el pulmón tiene la menor proporción de FTU y pocas imágenes, y por eso es el peor órgano para los tres modelos.
 
 **Página de rendimiento** (`app/pages/3_Rendimiento.py`)

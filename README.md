@@ -12,6 +12,10 @@ proyecto2-resultados.ipynb   Fase 2: preprocesamiento, modelos y evaluación
 src/preprocess.py            Pipeline de datos compartido (notebook y, después, la app)
 src/models.py                Fábricas de los 3 modelos
 src/training.py              Loop de entrenamiento, pérdida y preflight de memoria
+src/evaluation.py            Métricas de prueba (Dice, IoU, tiempo)
+app/Inicio.py                Portada de la aplicación (Streamlit)
+app/comun.py                 Datos, modelos y colores compartidos por las páginas
+app/pages/                   Una página por persona
 scripts/windows_training.ps1 Arnés de entrenamiento (Verify / Preflight / Train)
 data/
   train.csv                  Se descarga de Kaggle (no se sube al repo)
@@ -22,6 +26,7 @@ data/
     checkpoints/*.pt         Los 3 modelos entrenados (no se suben; van por Drive)
     historial_modelos.csv    Métricas por época (SÍ se sube)
     experimentos_modelos.csv Configuración y mejor Dice por modelo (SÍ se sube)
+  metrics.csv                Dice, IoU y tiempo por imagen de prueba y modelo (SÍ se sube)
 docs/
   division_avances_resultados.md     Qué hizo cada persona en la fase de resultados
   division_aplicacion.md             Qué hace cada persona en la aplicación
@@ -79,6 +84,25 @@ Corre todas las celdas desde el inicio (Run All). La primera celda imprime dos b
 Si ambas son `False`, falta descargar `train_images/` o pedir `data/cache_384/`. Generar la caché tarda unos minutos y solo se hace una vez.
 
 **La sección 3 no se ejecuta desde el notebook.** Sus banderas quedan en `False` a propósito; el entrenamiento va por el arnés de PowerShell (ver más abajo).
+
+### 4. Correr la aplicación
+
+Necesita los archivos del Drive en `data/` (ver [Qué sigue: la aplicación](#qué-sigue-la-aplicación)). No necesita GPU.
+
+```bash
+uv run streamlit run app/Inicio.py
+```
+
+Se abre en el navegador en `http://localhost:8501`; si no se abre sola, copia esa dirección. La portada muestra el Dice de los 3 modelos y avisa en amarillo si falta algún archivo del Drive. Se cierra con `Ctrl + C` en la terminal. Si la primera vez pide un correo, déjalo vacío y presiona Enter.
+
+Cada página nueva va en `app/pages/` (por ejemplo `app/pages/2_Prediccion.py`) y aparece sola en el menú de la izquierda. Para usar los datos y los modelos:
+
+```python
+from comun import cargar_datos, cargar_modelo, COLORES, NOMBRES_COMPLETOS
+
+datos = cargar_datos()            # train, splits, metricas, historial, experimentos
+modelo = cargar_modelo("segformer_mit_b0")
+```
 
 ## Fase 2: Resultados (trabajo en cadena)
 
@@ -141,7 +165,7 @@ Artefactos en `data/artefactos_entrenamiento/`:
 
 La fase de resultados está terminada: la sección 4 del notebook tiene las métricas de test, las figuras y la discusión con el modelo seleccionado (**SegFormer / MIT-B0**). No hace falta volver a ejecutar el notebook.
 
-La división de la aplicación en tres partes está en [`docs/division_aplicacion.md`](docs/division_aplicacion.md). Para empezar:
+La división de la aplicación en tres partes está en [`docs/division_aplicacion.md`](docs/division_aplicacion.md). El esqueleto ya está en `app/` (cómo correrlo en [4. Correr la aplicación](#4-correr-la-aplicación)). Para empezar:
 
 1. `git pull` y `uv sync`.
 2. Bajar del Drive y copiar dentro de `data/`:
