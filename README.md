@@ -41,7 +41,7 @@ Hay que correrlo **cada vez que hagas pull** y cambie `pyproject.toml`, porque e
 
 ### 2. Descargar los datos
 
-> **Si eres la Persona 3, sáltate este paso**: no necesitas los 5.8 GB. Ve directo a [Qué sigue: Persona 3](#qué-sigue-persona-3).
+> **Si eres la Persona 3, sáltate este paso**: no necesitas los datos. Ve directo a [Qué sigue: Persona 3](#qué-sigue-persona-3).
 
 En la [página de datos de la competencia](https://www.kaggle.com/competitions/hubmap-organ-segmentation/data) (hay que aceptar las reglas con el botón "Join Competition"; esto solo habilita la descarga) baja:
 
@@ -87,7 +87,7 @@ La división completa está en [`docs/division_avances_resultados.md`](docs/divi
 | --- | --- | --- | --- |
 | 1 | Persona 1 | 2. Pipeline de datos | Terminada |
 | 2 | Persona 2 | 3. Entrenamiento de los modelos | Terminada: los tres modelos entrenados y sus artefactos generados |
-| 3 | Persona 3 | 4. Evaluación, comparación y visualizaciones | En curso |
+| 3 | Persona 3 | 4. Evaluación, comparación y visualizaciones | Terminada |
 
 ### Dónde se quedó (2026-10-02)
 
@@ -97,10 +97,8 @@ La sección 4 se está armando en cuatro partes, una por commit:
 | --- | --- | --- | --- |
 | 1 | Módulo de métricas de prueba | `src/evaluation.py` | Hecho |
 | 2 | Correr los 3 modelos sobre `test` | `data/metrics.csv`, `.gitignore` | Hecho |
-| 3 | Las visualizaciones | `informe/figuras/`, `informe/figuras_resultados.py` | Pendiente |
-| 4 | Escribir la sección 4 del notebook | `proyecto2-resultados.ipynb` | Pendiente |
-
-La discusión final (4.4) la escribe la Persona 3, para que quede como su contribución.
+| 3 | Las visualizaciones | `informe/figuras/`, `informe/figuras_resultados.py` | Hecho |
+| 4 | Escribir la sección 4 del notebook | `proyecto2-resultados.ipynb` | Hecho |
 
 Pendiente aparte: subir al Drive `data/artefactos_entrenamiento/checkpoints/`, `data/cache_384/` y `data/train.csv` (312 MB) y pasarle el link a la Persona 3.
 
@@ -142,52 +140,24 @@ Artefactos en `data/artefactos_entrenamiento/`:
 
 ## Qué sigue: Persona 3
 
-Evaluación en el conjunto de prueba, comparación y visualizaciones. Es la **sección 4** del notebook, que hoy está vacía.
+La sección 4 del notebook está completa y con sus salidas: métricas de prueba, tablas por órgano, las cuatro figuras y la discusión con el modelo seleccionado (**SegFormer / MIT-B0**, 4.4). Con esto queda cubierta la fase de resultados; lo que sigue es la aplicación.
 
-**No necesitas GPU ni descargar las imágenes.** Son 53 imágenes a 384 px por modelo: la inferencia corre en CPU en minutos.
+**No necesitas GPU, Drive ni volver a correr nada.** Con `git pull` ya tienes:
 
-### Lo que ya viene en el repositorio
-
-Con `git pull` y `uv sync` ya tienes:
-
-| Archivo | Para qué |
+| Archivo | Qué es |
 | --- | --- |
-| `data/splits.csv` | la misma partición con la que se entrenó |
-| `data/artefactos_entrenamiento/historial_modelos.csv` | curvas de pérdida y Dice por época, una de las visualizaciones pedidas |
-| `data/artefactos_entrenamiento/experimentos_modelos.csv` | configuración y mejor val Dice por modelo |
+| `data/metrics.csv` | una fila por imagen de prueba y modelo: `modelo, id, organ, dice, iou, segundos, dispositivo` (lo usará la aplicación) |
+| `informe/figuras/resultados_*.png` | Dice e IoU por modelo, Dice por órgano, curvas de entrenamiento y ejemplos de predicción |
+| `data/artefactos_entrenamiento/*.csv` | historial por época y configuración de cada modelo |
 
-### Lo que tienes que bajar del Drive (312 MB)
+Resultados en prueba (53 imágenes, RTX 4060 Laptop, batch 1):
 
-Los pesos y la caché no caben en GitHub. Copia esto dentro de `data/`:
+| Modelo | Dice | IoU | ms por imagen | val Dice |
+| --- | --- | --- | --- | --- |
+| **SegFormer / MIT-B0** | **0.629** | **0.510** | 11.6 | 0.660 |
+| U-Net / ResNet34 | 0.506 | 0.400 | 11.8 | 0.606 |
+| U-Net++ / ResNet34 | 0.481 | 0.355 | 31.9 | 0.526 |
 
-| Carpeta o archivo | Tamaño | Para qué |
-| --- | --- | --- |
-| `artefactos_entrenamiento/checkpoints/` (3 `.pt`) | 208 MB | los modelos entrenados |
-| `cache_384/` (702 `.png`) | 89 MB | imágenes y máscaras a 384 px; te evita los 5.8 GB de `.tiff` |
-| `train.csv` | 16 MB | órgano, `pixel_size` y tamaños originales |
+Para leer el notebook basta con abrirlo. Si quieres ejecutar la sección 4, corre la *Configuración inicial*, la celda de `splits.csv` (2.4) y luego la sección 4; **no ejecutes la sección 3**. Las tablas y las figuras de resumen salen de `metrics.csv`. Solo la figura de ejemplos y `EJECUTAR_EVALUACION = True` necesitan `data/cache_384/` y los checkpoints del Drive.
 
-### Cómo correrlo
-
-1. `git pull` y `uv sync`.
-2. Copia los archivos del Drive dentro de `data/`.
-3. `uv run jupyter notebook proyecto2-resultados.ipynb` y ejecuta la *Configuración inicial* y **toda la sección 2**. Debe imprimir `caché de 384 px: True`, `Archivos en la caché: 702` y `test : 53 imágenes`.
-4. **No ejecutes la sección 3.** Sus banderas están en `False` a propósito: no entrena nada, solo imprime "omitido".
-5. Escribe tu sección 4.
-
-### Lo que necesitas saber para la sección 4
-
-- Evalúa con `loaders["test"]`, que no se usó para entrenar ni para elegir hiperparámetros. Cada batch trae `batch["organ"]` para el Dice por órgano.
-- Carga cada checkpoint así; el `.pt` guarda solo el `state_dict` (ejemplo completo en la sección **3.5** del notebook):
-
-```python
-estado = torch.load(f"data/artefactos_entrenamiento/checkpoints/{nombre}.pt", map_location="cpu")
-modelo = crear_modelo(nombre, pesos_preentrenados=False)
-modelo.load_state_dict(estado["modelo"])
-modelo.eval()
-```
-
-- **SegFormer devuelve `(batch, 1, 96, 96)`**, un cuarto de la entrada: hay que interpolarlo a `(384, 384)` antes de compararlo con la máscara. U-Net y U-Net++ ya devuelven `(batch, 1, 384, 384)`.
-- Los checkpoints son de 384 px: evalúa a esa resolución o las métricas no serán comparables.
-- Si mides **tiempo de inferencia** en CPU, dilo en el informe junto con el hardware.
-
-**Entregables:** `metrics.csv` (por imagen y por modelo), al menos 3 visualizaciones estáticas en `informe/figuras/` y la discusión con el modelo seleccionado.
+Las figuras se regeneran fuera del notebook con `uv run python -m informe.figuras_resultados`.
