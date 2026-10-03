@@ -10,13 +10,21 @@ Usamos los datos de la competencia de Kaggle, pero no participamos en ella: no s
 proyecto2-reto18.ipynb       Fase 1: análisis exploratorio (entregado)
 proyecto2-resultados.ipynb   Fase 2: preprocesamiento, modelos y evaluación
 src/preprocess.py            Pipeline de datos compartido (notebook y, después, la app)
+src/models.py                Fábricas de los 3 modelos
+src/training.py              Loop de entrenamiento, pérdida y preflight de memoria
+scripts/windows_training.ps1 Arnés de entrenamiento (Verify / Preflight / Train)
 data/
   train.csv                  Se descarga de Kaggle (no se sube al repo)
   train_images/              Se descarga de Kaggle (no se sube al repo)
   splits.csv                 División train/val/test (SÍ se sube: todos usan la misma)
-  cache_384/                 Imágenes y máscaras a 384 px (no se sube al repo; se comparte por Drive)
+  cache_384/                 Imágenes y máscaras a 384 px (no se sube; va por Drive)
+  artefactos_entrenamiento/
+    checkpoints/*.pt         Los 3 modelos entrenados (no se suben; van por Drive)
+    historial_modelos.csv    Métricas por época (SÍ se sube)
+    experimentos_modelos.csv Configuración y mejor Dice por modelo (SÍ se sube)
 docs/
-  division_avances_resultados.md   Qué hace cada persona en esta fase
+  division_avances_resultados.md     Qué hace cada persona en esta fase
+  ejecucion_entrenamiento_windows.md Cómo se ejecuta el entrenamiento
 informe/                     Informe en LaTeX, figuras y referencias.bib
 presentacion/                Presentación en Beamer
 ```
@@ -32,6 +40,8 @@ uv sync
 Hay que correrlo **cada vez que hagas pull** y cambie `pyproject.toml`, porque en esta fase se agregaron librerías (`torch`, `albumentations`, `opencv`, `tifffile`, `scikit-learn`). Si falta alguna, el notebook falla en la primera celda.
 
 ### 2. Descargar los datos
+
+> **Si eres la Persona 3, sáltate este paso**: no necesitas los 5.8 GB. Ve directo a [Qué sigue: Persona 3](#qué-sigue-persona-3).
 
 En la [página de datos de la competencia](https://www.kaggle.com/competitions/hubmap-organ-segmentation/data) (hay que aceptar las reglas con el botón "Join Competition"; esto solo habilita la descarga) baja:
 
@@ -77,7 +87,22 @@ La división completa está en [`docs/division_avances_resultados.md`](docs/divi
 | --- | --- | --- | --- |
 | 1 | Persona 1 | 2. Pipeline de datos | Terminada |
 | 2 | Persona 2 | 3. Entrenamiento de los modelos | Terminada: los tres modelos entrenados y sus artefactos generados |
-| 3 | Persona 3 | 4. Evaluación, comparación y visualizaciones | Pendiente |
+| 3 | Persona 3 | 4. Evaluación, comparación y visualizaciones | En curso |
+
+### Dónde se quedó (2026-10-02)
+
+La sección 4 se está armando en cuatro partes, una por commit:
+
+| # | Qué | Archivos | Estado |
+| --- | --- | --- | --- |
+| 1 | Módulo de métricas de prueba | `src/evaluation.py` | Hecho |
+| 2 | Correr los 3 modelos sobre `test` | `data/metrics.csv`, `.gitignore` | Pendiente |
+| 3 | Las visualizaciones | `informe/figuras/`, `informe/figuras_resultados.py` | Pendiente |
+| 4 | Escribir la sección 4 del notebook | `proyecto2-resultados.ipynb` | Pendiente |
+
+La discusión final (4.4) la escribe la Persona 3, para que quede como su contribución.
+
+Pendiente aparte: subir al Drive `data/artefactos_entrenamiento/checkpoints/`, `data/cache_384/` y `data/train.csv` (312 MB) y pasarle el link a la Persona 3.
 
 ### Reglas para trabajar en el mismo notebook
 
@@ -85,77 +110,84 @@ La división completa está en [`docs/division_avances_resultados.md`](docs/divi
 - **No cambies `data/splits.csv`**. Todos deben entrenar y evaluar con las mismas imágenes en cada conjunto.
 - Si necesitas cambiar algo del preprocesamiento, hazlo en `src/preprocess.py`, no copiando código al notebook, para que la app use exactamente lo mismo.
 - Al terminar tu parte: corre el notebook completo, guarda y haz commit con las salidas (gráficas incluidas).
-- No subas imágenes, la caché ni los pesos de los modelos (`.pth`); pesan demasiado para GitHub. Los pesos se comparten por Google Drive.
+- No subas imágenes, la caché ni los pesos de los modelos (`.pt`); pesan demasiado para GitHub y se comparten por Google Drive. Los dos CSV del entrenamiento sí están versionados: pesan 11 KB juntos.
 - No tengas el notebook abierto en Jupyter mientras otra herramienta lo edita: Jupyter lo guarda solo y puede sobrescribir los cambios.
 
-### Persona 2: estado y ejecución
+### Persona 2: entrenamiento (terminado)
 
-El entrenamiento completo se ejecutó el **2026-10-01** en una RTX 4060 Laptop de 8 GB, por el arnés de PowerShell, y dejó los tres checkpoints y los dos CSV en `data/artefactos_entrenamiento/`. Mejor Dice de validación por modelo:
+Ejecutado el **2026-10-01** en una RTX 4060 Laptop de 8 GB con el arnés de PowerShell. Resultados reales:
 
-| Modelo | Épocas ejecutadas | Mejor época | Mejor val Dice | Estado |
+| Modelo | Épocas | Mejor época | Mejor val Dice | Estado |
 | --- | --- | --- | --- | --- |
 | SegFormer / MIT-B0 | 10 | 5 | **0.6596** | detención temprana |
 | U-Net / ResNet34 | 13 | 8 | 0.6058 | detención temprana |
 | U-Net++ / ResNet34 | 6 | 1 | 0.5256 | detención temprana |
 
-Los tres pararon por early stopping (paciencia 5). **El valor de U-Net++ subestima al modelo**: su mejor época fue la 1 y su `train_dice` seguía subiendo (0.37 → 0.67), así que lo cortó el ruido de validación (53 imágenes de validación y batch efectivo 2), no una falta de aprendizaje. Conviene decirlo en la discusión en lugar de presentar 0.5256 como su techo.
+**El valor de U-Net++ subestima al modelo**: su mejor época fue la 1 y su `train_dice` seguía subiendo (0.37 → 0.67), así que lo cortó el ruido de validación (53 imágenes de validación y batch efectivo 2), no una falta de aprendizaje. Hay que decirlo en la discusión en lugar de presentar 0.5256 como su techo. Como referencia, los tres primeros lugares del reto llegaron a Dice ≈ 0.835, con resoluciones mayores, ensambles y pseudo-etiquetado.
 
-Como referencia, los tres primeros lugares del reto obtuvieron Dice ≈ 0.835 en el test privado, con resoluciones mayores, ensambles y pseudo-etiquetado; aquí se entrenó un solo modelo por arquitectura a 384 px con batch efectivo 2.
+Perfil usado, elegido para que el flujo completo quepa en una GPU portátil de 6 a 8 GB:
 
-El camino autorizado para la ejecución final es el arnés de PowerShell descrito en [`docs/ejecucion_entrenamiento_windows.md`](docs/ejecucion_entrenamiento_windows.md); `comandos_windows.txt` contiene la secuencia para la operadora. El notebook conserva la configuración y el contexto como referencia, pero no se usa para iniciar el entrenamiento final ni se editan sus banderas.
+- resolución **384 × 384 px**;
+- batch físico **1 imagen** (lo que reside en la GPU en cada forward/backward);
+- acumulación de gradientes de **2 pasos** → batch efectivo de **2 imágenes**;
+- precisión mixta (AMP) con CUDA.
 
-El perfil predeterminado prioriza completar el flujo en una **NVIDIA GeForce RTX 4050 Laptop de 6 GB** y también es aplicable a una RTX 4060 Laptop de 8 GB:
+Artefactos en `data/artefactos_entrenamiento/`:
 
-- resolución: **384 × 384 px**;
-- batch físico: **1 imagen**, que es lo que reside en la GPU durante cada forward/backward;
-- acumulación de gradientes: **2 pasos**;
-- batch efectivo: **2 imágenes** (`1 × 2`) antes de cada actualización del optimizador;
-- precisión mixta (AMP) cuando el dispositivo es CUDA.
+- `checkpoints/<modelo>.pt`: mejor checkpoint por Dice de validación, uno por modelo (no se versiona, va por Drive).
+- `historial_modelos.csv`: `modelo, epoca, train_loss, train_dice, val_loss, val_dice`. **Sí está en el repo.**
+- `experimentos_modelos.csv`: configuración, épocas ejecutadas, mejor época, mejor val Dice, checkpoint y estado. **Sí está en el repo.**
 
-Antes del entrenamiento completo, el arnés ejecuta un preflight separado para U-Net, U-Net++ y SegFormer. Cada prueba realiza forward, adaptación de logits, pérdida Dice + BCE, backward y un paso AdamW para materializar su estado; además informa los picos de memoria CUDA asignada y reservada. La memoria se limpia entre modelos y un OOM detiene el flujo antes de iniciar el entrenamiento. Que el preflight termine no garantiza disponibilidad posterior si otros procesos comienzan a consumir GPU.
+**Para repetir el entrenamiento**, si alguna vez hace falta: el único camino autorizado es el arnés descrito en [`docs/ejecucion_entrenamiento_windows.md`](docs/ejecucion_entrenamiento_windows.md), con la secuencia de `comandos_windows.txt`. Exige CUDA en Windows nativo y valida datos, GPU y memoria antes de gastar tiempo. No se entrena desde el notebook ni se editan sus banderas; el contrato del pipeline está en la sección **2.7 Entrega para la Persona 2**.
 
-La entrega esperada se escribe en `data/artefactos_entrenamiento/`:
+## Qué sigue: Persona 3
 
-- `checkpoints/<modelo>.pt`: mejor checkpoint por Dice de validación para cada modelo.
-- `historial_modelos.csv`: columnas `modelo, epoca, train_loss, train_dice, val_loss, val_dice`.
-- `experimentos_modelos.csv`: columnas `modelo, arquitectura_encoder, resolucion, batch, acumulacion_gradientes, batch_efectivo, learning_rate, epocas_solicitadas, epocas_ejecutadas, mejor_epoca, mejor_val_dice, checkpoint, estado`. `batch` conserva el significado de batch físico.
+Evaluación en el conjunto de prueba, comparación y visualizaciones. Es la **sección 4** del notebook, que hoy está vacía.
 
-Todo lo necesario del pipeline está en la sección **2.7 Entrega para la Persona 2** del notebook. En resumen:
+**No necesitas GPU ni descargar las imágenes.** Son 53 imágenes a 384 px por modelo: la inferencia corre en CPU en minutos.
 
-```python
-loaders = pp.crear_dataloaders(splits, CACHE_DIR, size=pp.IMG_SIZE, batch_size=BATCH_SIZE)
+### Lo que ya viene en el repositorio
 
-for batch in loaders["train"]:
-    imagenes = batch["image"].to(device)   # (8, 3, 384, 384)
-    mascaras = batch["mask"].to(device)    # (8, 1, 384, 384), valores 0 y 1
-```
+Con `git pull` y `uv sync` ya tienes:
 
-- Las librerías de modelos ya están declaradas en `pyproject.toml`; `uv sync --frozen` instala las versiones bloqueadas.
-- El perfil operativo exige CUDA en Windows nativo y conserva el split `test` exclusivamente para Persona 3.
-- Si el preflight falla por memoria con batch físico 1, cierre otros procesos que usen la GPU y repita desde `Verify`; no cambie el perfil conservador durante el handoff.
+| Archivo | Para qué |
+| --- | --- |
+| `data/splits.csv` | la misma partición con la que se entrenó |
+| `data/artefactos_entrenamiento/historial_modelos.csv` | curvas de pérdida y Dice por época, una de las visualizaciones pedidas |
+| `data/artefactos_entrenamiento/experimentos_modelos.csv` | configuración y mejor val Dice por modelo |
 
-### Persona 3: cómo empezar
+### Lo que tienes que bajar del Drive (312 MB)
 
-**No necesitas descargar las imágenes ni tener GPU.** La inferencia son 53 imágenes a 384 px por modelo: corre en CPU en minutos.
+Los pesos y la caché no caben en GitHub. Copia esto dentro de `data/`:
+
+| Carpeta o archivo | Tamaño | Para qué |
+| --- | --- | --- |
+| `artefactos_entrenamiento/checkpoints/` (3 `.pt`) | 208 MB | los modelos entrenados |
+| `cache_384/` (702 `.png`) | 89 MB | imágenes y máscaras a 384 px; te evita los 5.8 GB de `.tiff` |
+| `train.csv` | 16 MB | órgano, `pixel_size` y tamaños originales |
+
+### Cómo correrlo
 
 1. `git pull` y `uv sync`.
-2. Copia de la carpeta de Drive que comparte la Persona 2, dentro de `data/`:
+2. Copia los archivos del Drive dentro de `data/`.
+3. `uv run jupyter notebook proyecto2-resultados.ipynb` y ejecuta la *Configuración inicial* y **toda la sección 2**. Debe imprimir `caché de 384 px: True`, `Archivos en la caché: 702` y `test : 53 imágenes`.
+4. **No ejecutes la sección 3.** Sus banderas están en `False` a propósito: no entrena nada, solo imprime "omitido".
+5. Escribe tu sección 4.
 
+### Lo que necesitas saber para la sección 4
+
+- Evalúa con `loaders["test"]`, que no se usó para entrenar ni para elegir hiperparámetros. Cada batch trae `batch["organ"]` para el Dice por órgano.
+- Carga cada checkpoint así; el `.pt` guarda solo el `state_dict` (ejemplo completo en la sección **3.5** del notebook):
+
+```python
+estado = torch.load(f"data/artefactos_entrenamiento/checkpoints/{nombre}.pt", map_location="cpu")
+modelo = crear_modelo(nombre, pesos_preentrenados=False)
+modelo.load_state_dict(estado["modelo"])
+modelo.eval()
 ```
-data/
-  splits.csv                     ya está en el repositorio
-  train.csv                      16 MB
-  cache_384/                     702 .png (351 imágenes y 351 máscaras)
-  artefactos_entrenamiento/
-    checkpoints/unet_resnet34.pt
-    checkpoints/unetplusplus_resnet34.pt
-    checkpoints/segformer_mit_b0.pt
-    historial_modelos.csv
-    experimentos_modelos.csv
-```
 
-3. Ejecuta la *Configuración inicial* y **toda la sección 2**. Debe imprimir `caché de 384 px: True` y `test : 53 imágenes`. No ejecutes la sección 3: sus banderas están en `False` a propósito.
-4. Evalúa con `loaders["test"]`, que no se usó para entrenar ni para elegir hiperparámetros. Cada batch trae `batch["organ"]` para el Dice por órgano.
-5. Carga cada checkpoint con `crear_modelo(nombre, pesos_preentrenados=False)` y `modelo.load_state_dict(estado["modelo"])`; el `.pt` guarda solo el `state_dict`. El ejemplo completo está en la sección **3.5** del notebook.
+- **SegFormer devuelve `(batch, 1, 96, 96)`**, un cuarto de la entrada: hay que interpolarlo a `(384, 384)` antes de compararlo con la máscara. U-Net y U-Net++ ya devuelven `(batch, 1, 384, 384)`.
+- Los checkpoints son de 384 px: evalúa a esa resolución o las métricas no serán comparables.
+- Si mides **tiempo de inferencia** en CPU, dilo en el informe junto con el hardware.
 
-Los checkpoints son de 384 px: evalúa a esa resolución o las métricas no serán comparables. Si mides **tiempo de inferencia** en CPU, dilo en el informe junto con el hardware.
+**Entregables:** `metrics.csv` (por imagen y por modelo), al menos 3 visualizaciones estáticas en `informe/figuras/` y la discusión con el modelo seleccionado.
