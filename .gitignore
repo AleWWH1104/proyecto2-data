@@ -6,6 +6,9 @@ data/*
 !data/splits.csv
 *.csv.zip
 
+# Resultados de prueba de la sección 4 (los usará la aplicación)
+!data/metrics.csv
+
 # Métricas del entrenamiento: pesan KB y la Persona 3 las necesita para las curvas
 # de pérdida y Dice. Los checkpoints y la caché siguen fuera (cientos de MB) y se
 # comparten por Drive.

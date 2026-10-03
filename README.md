@@ -96,7 +96,7 @@ La sección 4 se está armando en cuatro partes, una por commit:
 | # | Qué | Archivos | Estado |
 | --- | --- | --- | --- |
 | 1 | Módulo de métricas de prueba | `src/evaluation.py` | Hecho |
-| 2 | Correr los 3 modelos sobre `test` | `data/metrics.csv`, `.gitignore` | Pendiente |
+| 2 | Correr los 3 modelos sobre `test` | `data/metrics.csv`, `.gitignore` | Hecho |
 | 3 | Las visualizaciones | `informe/figuras/`, `informe/figuras_resultados.py` | Pendiente |
 | 4 | Escribir la sección 4 del notebook | `proyecto2-resultados.ipynb` | Pendiente |
 

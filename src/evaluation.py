@@ -79,6 +79,9 @@ def evaluar_modelo(nombre, modelo, cargador, dispositivo="cpu", umbral=UMBRAL):
     modelo.eval()
     filas = []
 
+    primer_lote = next(iter(cargador))
+    modelo(primer_lote["image"].to(dispositivo))
+
     for lote in cargador:
         imagenes = lote["image"].to(dispositivo)
         mascaras = lote["mask"].to(dispositivo)
