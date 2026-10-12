@@ -1,16 +1,17 @@
 # Estado de la entrega sin pesos
 
-Al 11 de octubre de 2026, el código, la presentación y la fuente del informe están
-preparados para una entrega que declara los activos faltantes. **El PDF final del
-informe todavía no está compilado: no entregar el PDF EDA antiguo como resultado final.**
+El código, la presentación y el PDF del informe están preparados para una entrega
+que declara los activos faltantes. **El informe de resultados ya está compilado y
+verificado localmente e independientemente; la entrega humana sigue pendiente.**
 
 | Artefacto | Estado observado |
 | --- | --- |
 | `app/`, `src/`, `uv.lock`, README | Demo local de cuatro páginas; 63 pruebas sintéticas aprobadas |
 | `presentacion/presentacion.pdf` | Presentación de resultados actual, 20 páginas |
 | `informe/informe.tex` | Fuente corregida; resultados históricos y límites sin pesos explícitos |
-| `informe/referencias.bib` | 18 claves preservadas; correcciones mínimas con fuentes primarias, APA renderizada pendiente |
-| `informe/informe.pdf` | EDA antiguo de 13 páginas, 736239 bytes; preservado, no actualizado |
+| `informe/referencias.bib` | 18 claves preservadas; APA renderizada y revisada, auditoría primaria acotada |
+| `informe/informe.pdf` | Resultados, 31 páginas, 4242481 bytes; reemplazó el EDA solo después de verificación |
+| `informe/fuentes_para_compilar.zip` | 16 entradas seguras: fuente, bibliografía y 14 PNG; bytes idénticos a fuentes locales |
 | `informe/figuras/app_*.png` | Cuatro capturas auténticas de la aplicación local |
 | CSV y figuras históricas | Conservados byte por byte; sin entrenamiento ni reevaluación |
 | Pesos, `train.csv`, caché | Ausentes; recuperación diferida por el equipo |
@@ -30,33 +31,61 @@ muestra las medias registradas sobre los mismos 53 identificadores.
 
 ## Antes de entregar
 
-1. Resolver el ejecutable Biber conservando APA. Los estilos `csquotes`,
-   `biblatex` 3.22a, `biblatex-apa` 9.20 y la dependencia `logreq` se instalaron
-   exclusivamente en el árbol TeX del usuario, con dry-run y repositorios verificados.
-   El paquete oficial Biber 2.22 universal-darwin se verificó por SHA-512 contra
-   la metadata del repositorio TeX Live firmado y se extrajo a un directorio
-   temporal aislado. Su variante arm64 falla al iniciar: `Can't locate PAR.pm`.
-   Una única recuperación con entorno explícito mínimo y caché nueva reprodujo
-   la salida 2, antes de obtener una versión o procesar bibliografía. El fallo
-   persiste sin las variables Perl/PAR del proceso original y no es una caché
-   antigua: se extrajeron únicamente el cargador, su biblioteca Perl y la
-   variante arm64, sin completar el arranque del paquete autocontenido.
-   La causa interna del paquete no quedó demostrada; el mensaje no basta para
-   justificar instalar PAR externo. No se instaló Perl/PAR, Rosetta ni Biber
-   en el sistema. El requisito concreto es obtener un paquete oficial Biber
-   2.22 arm64 corregido y funcional, compatible con BCF 3.11, antes de compilar.
-   La [documentación oficial del empaquetado](https://github.com/plk/biber/blob/v2.22/BUILDERS.README)
-   indica que el ejecutable debe incluir Perl y sus módulos, sin instalar Perl.
-2. Compilar el informe con pdfLaTeX, Biber y dos pasadas finales de pdfLaTeX;
-   revisar cifras, citas, referencias cruzadas y todas las páginas renderizadas.
-   Reemplazar el PDF publicado solamente tras verificación satisfactoria.
-3. Confirmar la revisión bibliográfica y la aceptación independiente del informe.
-4. La persona responsable confirma destino Drive, permisos y entrega de PDF,
+1. Confirmar los límites de la revisión bibliográfica acotada antes de entregar.
+2. La persona responsable confirma destino Drive, permisos y entrega de PDF,
    presentación, código y enlace del repositorio según la guía del curso.
    No hay URL Drive confirmada ni entrega remota realizada.
 
 La inferencia con pesos reales sigue pendiente. Su ausencia no debe presentarse
 como cumplimiento de extremo a extremo del objetivo de segmentar imágenes nuevas.
+
+## Compilación autorizada y manifiesto local
+
+El consentimiento «Sí, autorizar compilación SSH» permitió una sola compilación
+en el host autorizado, exclusivamente dentro de la nueva carpeta de usuario
+`~/proyecto2-informe-build-05dd1c1`. Se transfirieron el ZIP verificado y un auxiliar
+de compilación, no el repositorio, datos, métricas ni checkpoints. Se mantiene esa
+carpeta con herramientas y logs para reproducibilidad; no se alteraron otros proyectos.
+
+TeX Live 2026 se instaló rootless con esquema `infraonly` y paquetes individuales,
+sin colecciones completas, documentación ni fuentes. El instalador se verificó
+por SHA-512; `tlmgr` confirmó el repositorio oficial
+`https://ctan.math.illinois.edu/systems/texlive/tlnet` como verificado.
+pdfTeX 1.40.29, Biber 2.22, biblatex 3.22a y APA 9.20 son compatibles.
+La carpeta ocupa 423072 KiB según la medición posterior al build.
+No hubo sudo, cambios de seguridad, GPU, entrenamiento ni evaluación nueva.
+
+Desde los fuentes extraídos se ejecutó, con salida 0 en cada etapa:
+
+```bash
+pdflatex -no-shell-escape -interaction=nonstopmode -halt-on-error informe.tex
+biber informe
+pdflatex -no-shell-escape -interaction=nonstopmode -halt-on-error informe.tex
+pdflatex -no-shell-escape -interaction=nonstopmode -halt-on-error informe.tex
+```
+
+Los primeros intentos detectaron `xparse.sty` y `cmex8.tfm` ausentes; se instalaron
+solo `l3packages`, `hyphen-spanish`, `amsfonts` y `cm-super` para completar estilos,
+silabeo español y fuentes. El primer PDF completo mostró un desborde de 36.53539 pt;
+un punto de corte permitido en `src/preprocess.py` lo resolvió sin alterar el contenido.
+Se reconstruyó el ZIP y se compiló nuevamente desde esos bytes exactos.
+Los fallos previos del Biber Mac (`PAR.pm`, salida 2, también con caché nueva)
+y la distribución oficial alternativa idéntica no ejecutada permanecen en el historial
+de tareas; no se instalaron Perl/PAR externos ni Rosetta ni se reparó el sistema Mac.
+
+| Artefacto | SHA-256 |
+| --- | --- |
+| PDF final, 4242481 bytes | `0e5820b1f7bfcc953af747dfd33a5094c7260a6fa5ae325ac82a8a6932746fcf` |
+| ZIP final, 4342775 bytes | `377c9f9a3e6e478157742af6bcabf1aba45528e58d0d3e9bd17158af3e704838` |
+| EDA anterior, respaldo temporal de 736239 bytes | `fd76a5000217d09da7129edd83c155403b9a92df695cf644483dbc4227def1f7` |
+
+Los hashes remoto/local coinciden. Se revisaron las 31 páginas renderizadas,
+las tablas densas y las referencias: 18 entradas resueltas, autores corporativos,
+acrónimos, identificadores de artículo, DOI y referencias cruzadas; 12 figuras presentes.
+Las cifras siguen correspondiendo a 53 imágenes comunes, 159 registros y 29 épocas.
+El log final no contiene desbordes, citas indefinidas ni solicitudes de nueva pasada;
+solo el aviso esperado de shell escape deshabilitado. El PDF no tiene metadatos
+de título/autor ni etiquetado accesible; no se afirma una auditoría de accesibilidad.
 
 ## Revisión bibliográfica acotada
 
@@ -76,7 +105,7 @@ como el autor corporativo HuBMAP Consortium y el sufijo II de Herr.
   [de Bono 22](https://api.crossref.org/works/10.1186/2041-1480-4-22),
   [Bidanta 1526](https://www.nature.com/articles/s41467-024-54591-6) y
   [Tellez 101544](https://api.crossref.org/works/10.1016/j.media.2019.101544).
-  Se usa `eid`; el estilo APA instalado lo admite, pero su renderizado sigue pendiente.
+  Se usa `eid`; el PDF renderiza los cinco identificadores como «Artículo», no como páginas.
 - [BibTeX oficial de SegFormer](https://proceedings.neurips.cc/paper_files/paper/12547-/bibtex):
   se añadieron editores y Curran Associates, Inc.; volumen y páginas no cambiaron.
 - CoaT conserva las páginas 9961–9970 de la

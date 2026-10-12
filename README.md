@@ -129,24 +129,24 @@ con gates y confirmación humana; no invocar directamente el runner Python.
 - [ ] **Diferido por el equipo:** recuperar los tres checkpoints confiables y `train.csv`;
       caché si se requiere. Comprobar una imagen nueva autorizada con pesos reales después;
       no usar el split de prueba para iterar la demo.
-- [ ] Revisar el PDF compilado: cifras, figuras, citas, legibilidad y sin desbordes.
+- [x] Revisar el PDF compilado: cifras, figuras, citas, legibilidad y sin desbordes.
 - [x] Corregir el informe fuente y añadir capturas reales; las 16 filas de resultados,
       split y entrenamiento coinciden con los CSV conservados.
-- [ ] Compilar y revisar el informe final con APA/Biber. **El PDF actual de informe
-      sigue siendo el EDA antiguo (13 páginas), no debe entregarse como informe final.**
-      Se instalaron los estilos faltantes solo en el árbol TeX del usuario. El Biber
-      oficial aislado no inicia en este Mac (`Can't locate PAR.pm`), incluso con
-      entorno limpio y caché nueva. Falta un paquete oficial arm64 funcional;
-      no se demostró que instalar PAR externo resuelva el problema. Los intentos
-      aislados no reemplazaron el PDF existente.
+- [x] Compilar y revisar el informe final con APA/Biber: `informe/informe.pdf`,
+      31 páginas, 4242481 bytes. Compilación SSH única expresamente autorizada,
+      en carpeta nueva dedicada del usuario, con TeX Live 2026 mínimo oficial,
+      pdfTeX 1.40.29, Biber 2.22, biblatex 3.22a y APA 9.20; sin sudo ni shell escape.
+      Las 18 referencias, 12 figuras y todas las páginas renderizadas se revisaron.
+      Se preservó el EDA anterior hasta verificar el nuevo PDF; los fallos del Biber
+      Mac siguen documentados, no se reparó ni modificó el sistema local.
 - [ ] Confirmar el enlace humano de Drive y sus permisos; entregar PDF, código,
       repositorio y presentación según [la guía](docs/instrucciones_entrega_final.md).
-- [ ] Completar la revisión APA renderizada; la auditoría bibliográfica acotada ya
+- [x] Completar la revisión APA renderizada; la auditoría bibliográfica acotada ya
       corrigió metadatos respaldados por fuentes primarias, sin certificar toda la indexación.
 
 Consulte el [estado de la entrega sin pesos](docs/estado_entrega_sin_pesos.md)
-antes de empaquetar o subir archivos. La presentación sí tiene PDF actualizado;
-la compilación del informe permanece pendiente, no se omite ese requisito.
+antes de empaquetar o subir archivos. Informe y presentación tienen PDF actualizado;
+la verificación independiente pasó; la entrega externa humana sigue pendiente.
 
 Código: `app/` (cuatro páginas), `src/inference.py` (cargas nuevas),
 `src/preprocess.py`, `src/models.py`, `src/training.py`, `src/evaluation.py`.
