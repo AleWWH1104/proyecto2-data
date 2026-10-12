@@ -36,9 +36,17 @@ muestra las medias registradas sobre los mismos 53 identificadores.
    El paquete oficial Biber 2.22 universal-darwin se verificó por SHA-512 contra
    la metadata del repositorio TeX Live firmado y se extrajo a un directorio
    temporal aislado. Su variante arm64 falla al iniciar: `Can't locate PAR.pm`.
-   No se instaló Perl/PAR, Rosetta ni Biber en el sistema. Se necesita un Biber
-   oficial funcional compatible con el formato BCF 3.11 de este biblatex, o un
-   entorno TeX ya disponible y confiable para completar la compilación.
+   Una única recuperación con entorno explícito mínimo y caché nueva reprodujo
+   la salida 2, antes de obtener una versión o procesar bibliografía. El fallo
+   persiste sin las variables Perl/PAR del proceso original y no es una caché
+   antigua: se extrajeron únicamente el cargador, su biblioteca Perl y la
+   variante arm64, sin completar el arranque del paquete autocontenido.
+   La causa interna del paquete no quedó demostrada; el mensaje no basta para
+   justificar instalar PAR externo. No se instaló Perl/PAR, Rosetta ni Biber
+   en el sistema. El requisito concreto es obtener un paquete oficial Biber
+   2.22 arm64 corregido y funcional, compatible con BCF 3.11, antes de compilar.
+   La [documentación oficial del empaquetado](https://github.com/plk/biber/blob/v2.22/BUILDERS.README)
+   indica que el ejecutable debe incluir Perl y sus módulos, sin instalar Perl.
 2. Compilar el informe con pdfLaTeX, Biber y dos pasadas finales de pdfLaTeX;
    revisar cifras, citas, referencias cruzadas y todas las páginas renderizadas.
    Reemplazar el PDF publicado solamente tras verificación satisfactoria.

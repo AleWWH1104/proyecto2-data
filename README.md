@@ -135,8 +135,10 @@ con gates y confirmación humana; no invocar directamente el runner Python.
 - [ ] Compilar y revisar el informe final con APA/Biber. **El PDF actual de informe
       sigue siendo el EDA antiguo (13 páginas), no debe entregarse como informe final.**
       Se instalaron los estilos faltantes solo en el árbol TeX del usuario. El Biber
-      oficial aislado no inicia en este Mac (`Can't locate PAR.pm`); sigue pendiente
-      un ejecutable compatible. Los intentos aislados no reemplazaron el PDF existente.
+      oficial aislado no inicia en este Mac (`Can't locate PAR.pm`), incluso con
+      entorno limpio y caché nueva. Falta un paquete oficial arm64 funcional;
+      no se demostró que instalar PAR externo resuelva el problema. Los intentos
+      aislados no reemplazaron el PDF existente.
 - [ ] Confirmar el enlace humano de Drive y sus permisos; entregar PDF, código,
       repositorio y presentación según [la guía](docs/instrucciones_entrega_final.md).
 - [ ] Completar la revisión APA renderizada; la auditoría bibliográfica acotada ya
