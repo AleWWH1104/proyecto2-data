@@ -40,10 +40,34 @@ presentacion/                Presentación en Beamer
 ### 1. Instalar dependencias
 
 ```bash
-uv sync
+uv sync --frozen
 ```
 
 Hay que correrlo **cada vez que hagas pull** y cambie `pyproject.toml`, porque en esta fase se agregaron librerías (`torch`, `albumentations`, `opencv`, `tifffile`, `scikit-learn`). Si falta alguna, el notebook falla en la primera celda.
+
+Para la aplicación local en **macOS con Apple Silicon**, use Python 3.11 o
+posterior (el Python 3.9 del sistema no cumple el requisito). `uv` selecciona
+Python compatible y el lock publicado incluye wheels arm64 para macOS 14 o
+posterior. Torch se instala desde PyPI, sin CUDA; la aplicación carga los
+checkpoints en CPU, aunque el equipo tenga MPS disponible.
+
+Compruebe la instalación sin abrir el notebook ni ejecutar entrenamiento:
+
+```bash
+uv run python -c "import torch, torchvision, streamlit, plotly; print(torch.__version__); print('MPS available:', torch.backends.mps.is_available())"
+uv run python -m unittest discover -s tests -p 'test_platform_dependencies.py' -v
+```
+
+En **Windows**, Torch conserva la versión CUDA `2.14.1+cu130` y el índice
+`https://download.pytorch.org/whl/cu130`. `torchvision` conserva `0.29.1` desde
+PyPI, que ya era su origen efectivo en el lock anterior. No se cambian el perfil
+conservador, los gates ni los comandos del
+[arnés Windows](docs/ejecucion_entrenamiento_windows.md). Una instalación en Mac
+no valida CUDA ni autoriza entrenamiento; un cambio de dependencias invalida
+la evidencia previa del arnés y exige repetir Verify en Windows antes de avanzar.
+
+Instalar dependencias no recupera `train.csv`, la caché ni los checkpoints.
+Su ausencia debe mostrarse como pendiente; no genere pesos nuevos para ocultarla.
 
 ### 2. Descargar los datos
 
