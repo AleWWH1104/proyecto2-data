@@ -59,7 +59,7 @@ Complete the local application, installation instructions, presentation, and now
 - Commit identity: `b642692`, created by the parent after independent acceptance (39 passing synthetic tests, frozen source/lock checks and imports). Rollback remains the exact FD1 boundary above; do not revert unrelated work.
 - Full Engram mirror: observation `5681`, topic `odd/final-delivery-completion/tasks`, project `proyecto2-data`; initial file and full mirror were both read back before source edits. Final progress mirror updated/read back before handoff.
 - Local tooling side effect: CodeGraph initialized before structural exploration as required; `.codegraph/` is untracked local tooling, not a delivery artifact and must not be staged.
-- Pending: native Windows Verify/Preflight, FD4–FD5 and end-to-end app/presentation acceptance. Parent commit identity and unfiltered-suite acceptance were resolved by independent verification below; bounded FD3 acceptance is recorded in its own section. Checkpoints/cache/train.csv recovery is not performed or claimed successful in FD1.
+- Historical pending items are resolved only by their later acceptance sections; FD1 did not recover checkpoints/cache/train.csv or prove native Windows readiness.
 
 ## Independent verification and remote inspection update
 
@@ -119,25 +119,7 @@ Complete the local application, installation instructions, presentation, and now
   - `HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 ALBUMENTATIONS_NO_VERSION_CHECK=1 UV_OFFLINE=1 UV_FROZEN=1 uv run python -m unittest discover -s tests -v`: 63 passed, 4.713 s. Only the authorized disabled notebook/fail-fast mock contract ran; no production training or notebook execution.
   - Four-page actual-missing-assets smoke and direct CSV byte comparison: exact command below, all four pages PASS, all four CSVs byte-equal to HEAD PASS. Earlier compact four-page smoke also passed. Bare-mode Streamlit warnings are expected.
 
-  ```bash
-  HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 ALBUMENTATIONS_NO_VERSION_CHECK=1 UV_OFFLINE=1 UV_FROZEN=1 uv run python -c 'import sys
-  import subprocess
-  from pathlib import Path
-  sys.path.insert(0, "app")
-  from streamlit.testing.v1 import AppTest
-  app = AppTest.from_file("app/Inicio.py", default_timeout=30).run()
-  assert not app.exception, app.exception
-  print("Inicio.py: PASS")
-  for page in ["pages/1_Exploracion.py", "pages/2_Prediccion.py", "pages/3_Rendimiento.py"]:
-      app.switch_page(page).run()
-      assert not app.exception, app.exception
-      if "2_Prediccion" in page:
-          assert any("bloqueada" in warning.value for warning in app.warning)
-      print(page + ": PASS")
-  for path in ["data/metrics.csv", "data/splits.csv", "data/artefactos_entrenamiento/historial_modelos.csv", "data/artefactos_entrenamiento/experimentos_modelos.csv"]:
-      assert Path(path).read_bytes() == subprocess.check_output(["git", "show", "HEAD:" + path]), path
-  print("All four CSVs byte-equal to HEAD: PASS")'
-  ```
+  Historical inline offline/frozen Python smoke: AppTest opened `app/Inicio.py`, switched to all three pages, asserted no exceptions and the missing-weight warning, then compared each of the four CSV bytes with `git show HEAD:<path>`; all checks passed. The full suite and FD6 verifier retain these runtime/integrity checks.
 
 - Integrity: `git diff --check` and `git diff --exit-code HEAD -- data/metrics.csv data/splits.csv data/artefactos_entrenamiento/historial_modelos.csv data/artefactos_entrenamiento/experimentos_modelos.csv` exit 0; all four before/after Git hashes still equal the FD3 hashes above. No metric/history/configuration/Windows contract/report modifications.
 - Correction rollback: revert only this transaction's `_proporcion_ftu` replacement and the two added regression methods/import in `tests/test_app_dashboard.py`, plus this correction evidence/state. This restores the pre-correction FD3 snapshot (including its known defect), not HEAD or the entire uncommitted FD3 unit. Full feature rollback remains the earlier FD3 boundary. Parent handles independent acceptance and any local main commit.
@@ -173,7 +155,7 @@ Complete the local application, installation instructions, presentation, and now
   Exit 0: all 16 numeric table rows match CSVs; 53 common test IDs, 159 unique model/ID rows, 245/53/53 split, history lengths/best epochs/Dice, README rounded metrics, three figure paths, five citation keys with entries, 17 substantive + two reference frames, LF/final newline and prior-PDF byte equality passed. Structural citation matching is not a resolved-LaTeX-reference claim. No model/evaluation code invoked.
 - Integrity: `git diff --check` and `git diff --exit-code HEAD -- informe data src app tests scripts pyproject.toml uv.lock '*.ipynb' presentacion/presentacion.pdf` exit 0. Source data, report/figures/bibliography, app, tests, training/profile, notebook and production metrics are unchanged. Existing untracked `.atl/`, `.codegraph/` and delivery instructions are preserved and not staged.
 - Work-unit scope: source/README replacement honestly exceeds the advisory 400-line budget; no code golf or artificial slicing. Original full-feature forecast 810–1220 remains historical, not a claim about final actual totals. PDF is unchanged generated evidence, not authored diff.
-- Acceptance limits: current PDF compile/visual check; missing weights/train/cache and actual-checkpoint FD5 acceptance; human app/screenshots, final report, human Drive URL/permissions and APA/index audit remain pending. No new screenshots, URLs or assets fabricated. No remote access/transfer, training, production/test evaluation, subagents, commit, push or PR.
+- Historical limits: PDF/visual acceptance, FD5 assets, screenshots/report/APA and human delivery pending; no fabricated assets or prohibited operations.
 - Rollback: restore only FD4 edits to `README.md` and `presentacion/presentacion.tex` against `275fca7`, and revert FD4 status/evidence in this task/mirror while keeping the independently accepted FD3 commit/history corrections. PDF is already byte-equal to `275fca7`; preserve FD1/FD2/FD3, excluded paths and untracked instructions/tooling. Parent performs any authorized main commit only after independent verification.
 - Skill resolution: read all four supplied skills and Windows execution guide before work. Work-unit rollback/checks documented; direct-main and parent-only commits override skill defaults. Cognitive-doc-design applied to demo/setup/checklist; PDF skill used for compile/metadata/text checks, visual gate blocked by missing theme. Windows skill is a safety constraint only: no Mac Verify/Preflight/Train. RDD globally off, no native review lifecycle; TDD explicitly unconfigured/off, functional checks only.
 
@@ -199,7 +181,7 @@ Complete the local application, installation instructions, presentation, and now
 - Final exact functional command after all README/presentation edits: `HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 ALBUMENTATIONS_NO_VERSION_CHECK=1 UV_OFFLINE=1 UV_FROZEN=1 uv run python -m unittest discover -s tests -v` exited 0: 63 tests passed in 4.804 s. Expected bare-mode Streamlit warnings only; no real notebook/training/evaluation ran.
 - CSV/source consistency verifier run once in this continuation: `UV_OFFLINE=1 UV_FROZEN=1 uv run python /var/folders/t9/r8cz3fx92ws7ksw4__xl6w800000gn/T/opencode/fd4_verify.py`, exit 0. All 16 numeric rows, common 53 IDs, split/history, README metrics, figure/citation keys and LF/newline checks passed. Temporary probe now accepts explicit bibliography labels and checks the protected old-PDF backup against HEAD, not the intentionally replaced output.
 - Integrity: `git diff --check` and `git diff --exit-code HEAD -- informe data src app tests scripts pyproject.toml uv.lock '*.ipynb'` exited 0. Final PDF SHA-256: `57b35ed0776a98bcf7b20d9241c68f74c77b13cf207fc24395f55d971e27d47d`. Nothing staged/committed; existing `.atl/`, `.codegraph/` and untracked instructions preserved.
-- Status/limits: FD4 locally complete, awaiting parent independent verification/commit. FD5 missing checkpoints/train/cache and actual new-image acceptance, human screenshots/report/Drive link/APA-index audit remain pending. No clinical/FD5 readiness claim, training, test-image evaluation, SSH/remote access, subagents, native review lifecycle, commit/push/PR. RDD off; TDD unconfigured/off.
+- Historical FD4 handoff: locally complete, parent acceptance pending; FD5 and human report/delivery limits unresolved, no clinical readiness or prohibited work. RDD off; TDD unconfigured/off.
 - Rollback: original FD4 boundary still restores README/presentation source against `275fca7`; now also restore the presentation PDF from that commit or the protected old-PDF backup. Revert only FD4 tracking/mirror progress, preserving accepted FD3 history. User TeX packages are external environment state, not committed source; removing only the two newly installed packages via authorized user-mode maintenance can be considered separately, never alter the system install.
 
 ## Previous handoff — asset location required (superseded scope, historical evidence)
@@ -222,14 +204,16 @@ Complete the local application, installation instructions, presentation, and now
 - Full exact offline/frozen unittest command documented above: exit 0, 63 tests in 4.806 s before README/status edits; final repeat after docs exit 0, 63 tests in 4.885 s. Final `git diff --check` and protected-path `git diff --exit-code HEAD` passed. Ordinary synthetic tests, RDD off/TDD unconfigured; disabled notebook contract only uses approved fail-fast mocks. No training, new evaluation, dataset image iteration, notebook execution, remote/credential work or child subagents.
 - Rollback: restore only README and report source against `bcddfa1`; remove the four new app screenshots and new delivery-status doc; revert FD6–FD8 tracking/mirror progress independently while preserving initial-scope history and FD1–FD4 commits. PDF/bibliography remain unchanged. Never restore app/data/tests/lock or preexisting untracked tooling/instructions.
 - Skills: all four exact requested paths and Windows guide read. Work-unit checks/rollback and cognitive documentation applied; PDF tooling used for empirical build/preservation checks, visual PDF gate honestly blocked. Windows skill is a safety boundary only. Direct-main parent-only commits override skill defaults. Full mirror remains observation `5681`, topic `odd/final-delivery-completion/tasks`, project `proyecto2-data`.
-- Remaining: authorize a bounded Biber/toolchain solution or compile on an existing trusted TeX environment, then bibliography audit, successful final PDF build/all-page inspection, parent independent verification, and human Drive destination/permissions/delivery. No invented link, approval or fully completed delivery claim.
+- Historical next step: authorized Biber recovery, PDF/APA/visual acceptance, parent verification and human delivery; later continuation records actual outcomes, not completion.
 
 ## FD6–FD8 authorized compilation and bibliography continuation
 
-- FD7 recovery authorized by user: diagnose startup, clean isolated process/cache or evidenced minimal user/temp dependencies only. No system/security changes. Initial failures retained.
+- FD7 recovery: prior startup/cache diagnosis retained. Latest human `dale` authorizes one additional bounded search/startup attempt only for a genuinely distinct official compatible native Mac distribution, isolated in approved temp; no system/security changes or blind replay.
 - Bibliography scope: supplied primary evidence only, all 18 keys preserved; disputed/partial records unchanged. Parent acceptance and APA/PDF checks required.
 - User-mode verified dry-run/install: csquotes, biblatex 3.22a, APA 9.20, logreq, exit 0. Initial pdfLaTeX missing-logreq and metadata-query failures retained; no system install.
 - Biber: signed Illinois CTAN revision 80020, 71094272 bytes; SHA-512 `6295863abe23c9de3ab47334ac36b194db1200ac24ae72459a0a5f2782d429d0a75d6dcdce0831c3369f649c312e9331c5cdfdd2f5d035ab9929ed9b723eccc4` reverified. v2.22/BCF 3.11 matched. Initial native exit 2/PAR.pm and x86 unavailable retained. One authorized clean-environment/fresh-cache attempt (`fd7_diagnose.py`) exits 2 identically before payload startup; stale cache/environment excluded, package-internal cause unproven. Official BUILDERS.README says self-contained: no justified CPAN install. Need corrected official arm64 package; no binary/security patch, PDF preserved.
 - FD6 source/citation corrections accepted `a4c733d`; tracking committed `58d1ea8`. No source/bib/app edits in FD7 recovery. Four screenshots/prior figures intact; APA still pending.
 - Verification: `fd6_verify.py` exit 0 (16 numeric rows, 12 figures, 18 keys, bibliography allowlist, four-page AppTest/integrity including all screenshots). Offline/frozen suite: 63 pass, 4.595/4.633 s; FD7 recovery 4.676 s. Whitespace/protected diffs pass; Biber fails. PDF/APA acceptance pending.
-- FD7 blocked/FD8 incomplete; FD5 deferred. Parent acceptance/human delivery pending. Recovery rollback: README/status/tracking against `58d1ea8`; preserve accepted FD6. Tool state external; mirror limit handled by concise continuation, history retained.
+- SourceForge gate: official v2.22 builders/docs authorize this publisher (`philkime`) and pair 2.22/3.22. `current/binaries/MacOS/` has one native universal and two x86-only builds. Universal archive (Aug16), 73491938 bytes, SHA-256 `b0dc9804c803057a65f8dd5399f4c10e8dde207678dc9806a90a9d232afa0f37`; sole regular `biber` 84582416 bytes, x86_64/arm64, arm64 minOS26.0. Its SHA-256 and failed signed TeX Live binary both `8a50df30c1323b2eec642d4513d6ba704b51cb7ca741f175aad85b3fab0ca88c`. Identical: NOT executed; STOP. Checksum JSON 404, no independent SourceForge checksum/version/startup success claimed. Details: memory `5725`.
+- Preservation: exact offline/frozen suite above: 63 pass, 4.912 s; protected/staged diffs clean. PDF unchanged 13 pages/736239 bytes, SHA-256 `fd76a5000217d09da7129edd83c155403b9a92df695cf644483dbc4227def1f7`; ZIP unchanged 4342765 bytes, SHA-256 `4873431017d70ca5dd8c748f27860da2657c36e8a4cb7341db6b9d89eea508b2`. Only tracking changed; no rebuild/APA/visual acceptance.
+- FD7 blocked/FD8 incomplete/FD5 deferred; human delivery pending. Rollback: tracking/mirror `5681` against `e22e794`; accepted assets preserved. Four skills/Windows guide read; RDD off/TDD unconfigured; parent-only commits, no prohibited work.
