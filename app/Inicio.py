@@ -2,7 +2,7 @@
 
 import streamlit as st
 
-from comun import MODELO_SELECCIONADO, MODELOS, NOMBRES_COMPLETOS, archivos_faltantes, cargar_datos
+from comun import NOMBRES_COMPLETOS, archivos_faltantes, cargar_datos, paired_metrics, performance_visible
 
 st.set_page_config(page_title="Segmentación de FTU", page_icon="🔬", layout="wide")
 
@@ -18,28 +18,29 @@ para encontrarlas en imágenes de tejido de cinco órganos.
 """
 )
 
-datos = cargar_datos()
-resumen = datos["metricas"].groupby("modelo")[["dice", "iou"]].mean()
-
-st.subheader("Modelos entrenados")
-st.write(
-    f"Resultados en el conjunto de prueba ({datos['metricas']['id'].nunique()} imágenes). "
-    f"El modelo seleccionado es **{NOMBRES_COMPLETOS[MODELO_SELECCIONADO]}**."
-)
-columnas = st.columns(len(MODELOS))
-for columna, modelo in zip(columnas, MODELOS):
-    with columna:
-        etiqueta = NOMBRES_COMPLETOS[modelo]
-        if modelo == MODELO_SELECCIONADO:
-            etiqueta += " ⭐"
-        st.metric(etiqueta, f"Dice {resumen.loc[modelo, 'dice']:.3f}")
-        st.caption(f"IoU {resumen.loc[modelo, 'iou']:.3f}")
+if performance_visible():
+    datos = cargar_datos()
+    models = list(NOMBRES_COMPLETOS)
+    paired, excluded = paired_metrics(datos["metricas"], models)
+    st.subheader("Resultados existentes")
+    if paired.empty:
+        st.warning("No hay métricas válidas comunes para los tres modelos.")
+    else:
+        st.caption(f"Evaluación registrada: {paired['id'].nunique()} imágenes comunes; no se reevalúa.")
+        resumen = paired.groupby("modelo")[["dice", "iou"]].mean()
+        for columna, modelo in zip(st.columns(len(models)), models):
+            with columna:
+                st.metric(NOMBRES_COMPLETOS[modelo], f"Dice {resumen.loc[modelo, 'dice']:.3f}")
+                st.caption(f"IoU {resumen.loc[modelo, 'iou']:.3f} · rango [0, 1]")
+        if excluded:
+            st.warning(f"Se excluyen {excluded} filas sin pareja para comparar el mismo conjunto.")
+    st.caption("Promedios descriptivos, sin intervalos de confianza; detalles en Rendimiento.")
 
 st.subheader("Qué hay en cada página")
 st.markdown(
     """
 - **Exploración**: las variables del conjunto de datos y los hallazgos del análisis exploratorio.
-- **Predicción**: sube una imagen de tejido o elige una de prueba y compara la segmentación de cada modelo.
+- **Predicción**: carga una imagen nueva de tejido y compara la segmentación de los modelos disponibles.
 - **Rendimiento**: métricas de los modelos en el conjunto de prueba, por órgano y por época.
 """
 )
@@ -49,5 +50,5 @@ if faltantes:
     st.warning(
         "Faltan archivos del Drive en `data/`: "
         + ", ".join(f"`{f}`" for f in faltantes)
-        + ". Sin ellos no funcionan la exploración ni la predicción."
+        + ". La exploración usa los metadatos tabulares disponibles; los resultados existentes no requieren pesos."
     )
