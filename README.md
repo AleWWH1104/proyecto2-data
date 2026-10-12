@@ -104,6 +104,8 @@ sintéticos; no equivalen a Verify/Preflight en Windows nativo. TDD no está
 configurado; estos son controles funcionales, no una afirmación de TDD.
 
 Presentación: `presentacion/presentacion.tex` y `presentacion/presentacion.pdf`.
+Guion por las 20 páginas, reparto y tiempos propuestos de ensayo, demo sin pesos
+y respuestas para preguntas: [guion de presentación](presentacion/guion_presentacion.md).
 **Estado de este checkout:** PDF de resultados actualizado (20 páginas), compilado
 con pdfLaTeX sin shell escape. Metropolis y `pgfopts` se instalaron exclusivamente
 en el árbol TeX del usuario desde el repositorio oficial CTAN; no se cambió el tema
