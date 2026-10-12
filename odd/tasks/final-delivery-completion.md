@@ -32,10 +32,10 @@ Complete the local application, installation instructions, presentation, and now
 - [x] **FD6 — Report source, bounded bibliography corrections and genuine app state locally verified.** Sixteen result/split/history rows match existing CSVs; four authentic screenshots added, absent weights/metadata explicit. All 18 citation keys retained; primary-evidence metadata corrections applied. Accepted and committed `a4c733d`; APA verified.
 - [x] **FD7 — Final report accepted `8befc9d`.** Authorized SSH compilation, 31 pages, 18 APA references and 12 figures inspected. Independent verification and parent full-suite spot check passed all 63 tests; published PDF and source ZIP hashes confirmed.
 - [x] **FD8 — Manifiesto local completo.** README/estado documentan PDF verificado, hashes, autorización y límites; Drive/permisos/entrega humana externa pendientes, sin enlaces inventados.
-- [ ] **FD9 — Presentación y guion.** Delegada, multifichero; previsión 180–300 líneas (400 orientativo), base `d4a07ff`. Solo presentación/guion/README/tracking; build aislado, 20 páginas y suite offline. Sin entrenamiento ni acceso remoto.
+- [x] **FD9 — Presentation and Markdown script accepted `1e40f6e`.** Existing LaTeX/PDF refreshed in two status slides; 20-page script in `presentacion/guion_presentacion.md`, proposed roles/12-minute rehearsal and honest demo. Writer checks and parent structural readback/full 63-test spot check passed. RDD off; native risk medium; no remote work or training.
 - [ ] **FD10 — Publicación pendiente por el padre.** Verificación y consentimiento de destino/operación/credencial requeridos; delegado sin stage/commit/push/fetch/auth. FD5 diferido; Drive/entrega humana pendientes.
 
-## FD9 — Evidencia local (aceptación del padre pendiente)
+## FD9 — Evidencia local (aceptada `1e40f6e`)
 
 - Dos estados corregidos; guion296 líneas/2626 palabras/1027 habladas, 20 títulos exactos, ensayo720s incluye demo90s; roles propuestos y ocho respuestas, README enlazado. Total autoral345 líneas añadidas/eliminadas (incluye tracking; PDF generado excluido).
 - Dos pasadas pdfLaTeX con flags FD4 y salida aislada fd9-build: exit0,20p/366390B, sin desbordes/indefinidas/rerun (Fira/epstopdf esperados). Texto/20 renders/contactos/PDF17–18 revisados, backup preservado. Probe CSV/títulos/tiempos exit0. Fallo auxiliar conteo PNG3: pdfimages demuestra3RGB+3soft masks; corregido6, bytes idénticos.
