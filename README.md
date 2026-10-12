@@ -124,16 +124,27 @@ con gates y confirmación humana; no invocar directamente el runner Python.
 
 ## Checklist antes de entregar
 
-- [ ] Abrir la app y recorrer las cuatro páginas; comprobar filtros y ocultamiento.
-- [ ] Recuperar los tres checkpoints confiables y `train.csv`; caché si se requiere.
-- [ ] Comprobar una imagen nueva autorizada con uno/todos los modelos disponibles;
-      no usar el split de prueba para iterar la demo. Capturar pantallas reales.
+- [x] Recorrer las cuatro páginas localmente; filtros y ocultamiento verificados con AppTest.
+- [x] Capturar pantallas auténticas de la demo sin pesos en `informe/figuras/app_*.png`.
+- [ ] **Diferido por el equipo:** recuperar los tres checkpoints confiables y `train.csv`;
+      caché si se requiere. Comprobar una imagen nueva autorizada con pesos reales después;
+      no usar el split de prueba para iterar la demo.
 - [ ] Revisar el PDF compilado: cifras, figuras, citas, legibilidad y sin desbordes.
-- [ ] Completar/verificar el informe final por separado y las capturas solicitadas;
-      esta actualización no modifica ni acredita el informe.
+- [x] Corregir el informe fuente y añadir capturas reales; las 16 filas de resultados,
+      split y entrenamiento coinciden con los CSV conservados.
+- [ ] Compilar y revisar el informe final con APA/Biber. **El PDF actual de informe
+      sigue siendo el EDA antiguo (13 páginas), no debe entregarse como informe final.**
+      Se instalaron los estilos faltantes solo en el árbol TeX del usuario. El Biber
+      oficial aislado no inicia en este Mac (`Can't locate PAR.pm`); sigue pendiente
+      un ejecutable compatible. Los intentos aislados no reemplazaron el PDF existente.
 - [ ] Confirmar el enlace humano de Drive y sus permisos; entregar PDF, código,
       repositorio y presentación según [la guía](docs/instrucciones_entrega_final.md).
-- [ ] Auditar APA/indexación de las referencias cuando corresponda; no se certificó aquí.
+- [ ] Completar la revisión APA renderizada; la auditoría bibliográfica acotada ya
+      corrigió metadatos respaldados por fuentes primarias, sin certificar toda la indexación.
+
+Consulte el [estado de la entrega sin pesos](docs/estado_entrega_sin_pesos.md)
+antes de empaquetar o subir archivos. La presentación sí tiene PDF actualizado;
+la compilación del informe permanece pendiente, no se omite ese requisito.
 
 Código: `app/` (cuatro páginas), `src/inference.py` (cargas nuevas),
 `src/preprocess.py`, `src/models.py`, `src/training.py`, `src/evaluation.py`.

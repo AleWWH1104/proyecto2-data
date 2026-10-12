@@ -42,9 +42,10 @@ pipeline de preprocesamiento reutilizable y se entrenaron tres arquitecturas sel
 de la revisión bibliográfica: U-Net con encoder ResNet34, U-Net++ con encoder ResNet34 y SegFormer
 con encoder MIT-B0. Sobre un conjunto de prueba reservado de 53 imágenes, SegFormer obtuvo el mejor
 desempeño (Dice de 0.629 e IoU de 0.510), fue el mejor en los cinco órganos y además es el modelo
-más ligero, por lo que se seleccionó para la aplicación. El pulmón fue el órgano más difícil para los
-tres modelos, lo cual concuerda con el hallazgo del análisis exploratorio de que sus FTU ocupan la
-menor proporción de la imagen.
+más ligero, por lo que se seleccionó como referencia de la aplicación. El pulmón fue el órgano más
+difícil para los tres modelos; su baja cobertura de FTU es contexto exploratorio, no una causa
+demostrada. Se entrega la aplicación y los resultados históricos, pero la inferencia de imágenes
+nuevas permanece bloqueada porque los pesos entrenados no están disponibles localmente.
 \end{abstract}
 
 \tableofcontents
@@ -61,8 +62,10 @@ de HuBMAP con los del Atlas de Proteínas Humanas (HPA). Lo que pide es encontra
 de fotografías de tejido, las llamadas unidades funcionales de tejido o FTU
 \parencite{jain2023hacking}.
 
-Una FTU es un grupo pequeño de células organizadas alrededor de un vaso sanguíneo que en conjunto
-cumplen una función específica dentro del órgano al que pertenecen \parencite{debono2013ftu}. El reto
+La formulación original de \textcite{debono2013ftu} vincula las FTU con la organización alrededor de
+capilares. Para este reto se adopta la definición funcional: una organización mínima de tejido que
+realiza una función fisiológica específica y se repite dentro del órgano \parencite{jain2023hacking}.
+La organización capilar no se impone como condición universal. El reto
 incluye cinco órganos: riñón, próstata, bazo, pulmón e intestino grueso. En cada uno la FTU se ve
 distinta porque cada órgano tiene su propia estructura: en riñón corresponde a los glomérulos, en
 intestino grueso a las criptas, en próstata a las unidades glandulares \parencite{bidanta2025ftu}.
@@ -151,8 +154,9 @@ misma estructura tenga el mismo tamaño aparente \parencite{jain2023hacking}.
 laboratorio y del escáner. Hay dos estrategias para que un modelo sea robusto a esa variabilidad: la
 \emph{normalización de tinción}, que lleva cada imagen a una tinción de referencia
 \parencite{macenko2009stain}, y el \emph{aumento de datos de color}, que altera al azar el tono, la
-saturación, el brillo y el contraste durante el entrenamiento. \textcite{tellez2019stain} encontraron
-que el aumento de color es lo que más mejora la generalización entre laboratorios.
+saturación, el brillo y el contraste durante el entrenamiento. \textcite{tellez2019stain} estudian
+los efectos del aumento de datos y de la normalización de tinción en patología computacional;
+no se presupone que una estrategia sea universalmente superior.
 
 \textbf{Aumento de datos geométrico.} El tejido no tiene una orientación fija, de modo que voltear o
 rotar una imagen produce un ejemplo igual de válido. Estas transformaciones multiplican la variedad
@@ -161,14 +165,14 @@ del conjunto de entrenamiento y son especialmente útiles cuando hay pocas imág
 
 \subsection{Contexto médico: tejido y unidades funcionales}
 
-Las imágenes provienen de cortes de tejido teñidos con PAS (\emph{Periodic Acid-Schiff}), una
-tinción que reacciona con los carbohidratos del tejido y resalta membranas basales y estructuras
-glandulares, de modo que puedan distinguirse al microscopio. Ese es el motivo del característico
-tono rosado y morado de las muestras.
+Las imágenes HPA del reto son de inmunohistoquímica: los anticuerpos se visualizan con DAB
+(3,3'-diaminobencidina) y contratinción con hematoxilina. La porción HuBMAP incorpora PAS
+(\emph{Periodic Acid-Schiff}) y hematoxilina-eosina (H\&E) \parencite{jain2023hacking}.
+No corresponde describir todas las muestras como PAS ni identificar la tinción solo por el color.
 
 El patrón que un algoritmo debe reconocer no es una lesión ni una enfermedad, sino una estructura
-anatómica normal: la organización espacial de células alrededor de un vaso
-\parencite{debono2013ftu}. \textcite{bidanta2025ftu} catalogaron 22 tipos de FTU en 10 órganos y
+anatómica normal que realiza una función fisiológica específica \parencite{jain2023hacking}.
+\textcite{bidanta2025ftu} catalogaron 22 tipos de FTU en 10 órganos, incluyendo relaciones anidadas, y
 muestran que su tamaño y composición cambian mucho de un órgano a otro. En los cinco órganos del reto,
 la FTU corresponde al glomérulo en riñón, a la cripta en intestino grueso, a la unidad glandular en
 próstata, a la pulpa blanca en bazo y al alvéolo en pulmón. La dificultad está en que esa
@@ -198,8 +202,9 @@ encoder reduce la imagen y extrae características, y el decoder la vuelve a amp
 una máscara del tamaño de la entrada. Las \emph{conexiones de salto} pasan los detalles finos del
 encoder al decoder, lo que permite delimitar bordes con precisión. U-Net funciona bien con pocas
 imágenes gracias al aumento de datos y se convirtió en la referencia de la segmentación biomédica
-\parencite{siddique2021unet}. nnU-Net mostró que una U-Net bien configurada sigue superando a
-arquitecturas más especializadas en 23 conjuntos de datos \parencite{isensee2021nnunet}.
+\parencite{siddique2021unet}. El pipeline completo y autoconfigurable nnU-Net mostró resultados
+competitivos en 23 conjuntos de datos \parencite{isensee2021nnunet}; ese resultado no se atribuye
+a la U-Net simple entrenada en este proyecto.
 
 \textbf{U-Net++.} \textcite{zhou2020unetpp} rediseñaron las conexiones de salto de U-Net como una red
 de conexiones densas y anidadas que combinan características de varias escalas antes de llegar al
@@ -234,7 +239,7 @@ imagen tendría más del 94\,\% de exactitud.
 aplica la regularización por \emph{weight decay} de forma desacoplada del gradiente. La
 \emph{detención temprana} (early stopping) interrumpe el entrenamiento cuando la métrica de validación
 deja de mejorar durante un número fijo de épocas (la \emph{paciencia}) y conserva el mejor modelo
-visto, lo que evita el sobreajuste.
+visto, con el objetivo de limitar el sobreajuste, sin garantizar su ausencia.
 
 \subsection{Hallazgos de las soluciones ganadoras del reto}
 
@@ -300,7 +305,8 @@ lung           & 34 &  7 &  7 \\
 
 El conjunto de entrenamiento se usa para ajustar los pesos; el de validación, para elegir la mejor
 época de cada modelo (detención temprana); y el de prueba, solo una vez al final, para comparar los
-modelos sin sesgo. La división se guardó en \texttt{data/splits.csv} para que todo el equipo usara
+modelos con una partición reservada. Esto no demuestra independencia por donante: la estratificación
+se hizo por imagen y órgano, no por paciente. La división se guardó en \texttt{data/splits.csv} para que todo el equipo usara
 exactamente las mismas imágenes.
 
 \subsection{Selección de los algoritmos}
@@ -317,14 +323,16 @@ U-Net / ResNet34    & CNN (referencia) & Arquitectura de referencia en segmentac
   \parencite{isensee2021nnunet}. \\
 U-Net++ / ResNet34  & CNN mejorada & Conexiones de salto multiescala, útiles porque el tamaño de las
   FTU varía mucho entre órganos \parencite{zhou2020unetpp}. \\
-SegFormer / MIT-B0  & Transformer & Mejor modelo individual del reto
-  \parencite{jain2023hacking,xie2021segformer}. Permite comparar una CNN contra un transformer. \\
+SegFormer / MIT-B0  & Transformer & Familia con resultados favorables en el reto; el resultado
+  individual de 0.828 corresponde a MIT-B4, no a MIT-B0 \parencite{jain2023hacking,xie2021segformer}.
+  MIT-B0 se elige por su menor costo de cómputo. \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 U-Net y U-Net++ comparten el mismo encoder (ResNet34 preentrenado en ImageNet), de modo que la
-diferencia entre ambas se debe solo al decoder. Para SegFormer se eligió la variante más pequeña,
+comparación contrasta sus decoders bajo el protocolo común, sin aislar causalmente todos los factores
+de entrenamiento. Para SegFormer se eligió la variante más pequeña,
 MIT-B0, por la memoria disponible. Como alternativas se consideraron DeepLabV3+
 \parencite{chen2018deeplabv3plus} y CoaT \parencite{xu2021coat}.
 
@@ -336,34 +344,41 @@ compartido en el que cada integrante desarrolló su sección.
 
 \begin{table}[H]
 \centering
-\caption{Lenguaje y bibliotecas utilizadas}
+\caption{Entorno local actual verificado para la entrega, no reconstrucción del entorno histórico}
 \begin{tabular}{llp{8.2cm}}
 \toprule
 \textbf{Herramienta} & \textbf{Versión} & \textbf{Uso} \\
 \midrule
-Python                        & 3.11   & Lenguaje de todo el proyecto. \\
-PyTorch                       & 2.14   & Entrenamiento e inferencia de los modelos (CUDA y CPU). \\
-segmentation-models-pytorch   & 0.5    & U-Net y U-Net++ con encoder ResNet34. \\
-Transformers (Hugging Face)   & 5.17   & SegFormer y pesos preentrenados \texttt{nvidia/mit-b0}. \\
-Albumentations                & 2.0    & Aumento de datos geométrico y de color. \\
-OpenCV, tifffile              & 5.0    & Lectura y redimensionamiento de imágenes. \\
-pandas, NumPy                 & 3.0, 2.4 & Manejo de datos tabulares y máscaras. \\
-Matplotlib, seaborn           & 3.11   & Visualizaciones estáticas del informe. \\
-Streamlit, Plotly             & ---    & Aplicación y gráficas interactivas. \\
-uv                            & ---    & Entorno y dependencias reproducibles (\texttt{uv.lock}). \\
+Python                        & 3.11.17 & Intérprete local administrado por uv. \\
+PyTorch                       & 2.14.1 & Inferencia CPU; el lock conserva la variante CUDA Windows. \\
+\shortstack[l]{segmentation-models-\\pytorch} & 0.5.0 & U-Net y U-Net++ con encoder ResNet34. \\
+Transformers                  & 5.17.0 & SegFormer con encoder MIT-B0. \\
+Albumentations                & 2.0.8 & Aumento de datos geométrico y de color. \\
+OpenCV (headless)             & 5.0.0.93 & Redimensionamiento de imágenes. \\
+tifffile                      & 2026.3.3 & Lectura de imágenes TIFF. \\
+pandas / NumPy                & 3.0.5 / 2.4.6 & Datos tabulares y máscaras. \\
+Matplotlib / seaborn          & 3.11.1 / 0.13.2 & Visualizaciones estáticas. \\
+Streamlit / Plotly            & 1.65.0 / 7.1.0 & Aplicación y gráficas interactivas. \\
+uv                            & 0.12.23 & Entorno y dependencias reproducibles (\texttt{uv.lock}). \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \subsection{Recursos de cómputo}
 
+Las versiones de la tabla corresponden a los paquetes instalados para esta entrega local. Los
+CSV históricos no conservan un inventario completo de versiones; el lock actual no demuestra qué
+versiones se usaron en la ejecución original.
+
 El entrenamiento se ejecutó en una laptop con GPU NVIDIA GeForce RTX 4060 Laptop (8\,GB de VRAM),
 procesador AMD Ryzen 9 8945HS y 16\,GB de RAM, sobre Windows 11. La configuración de entrenamiento
 se diseñó para caber también en una RTX 4050 Laptop de 6\,GB, la GPU más limitada del equipo. Antes
 de entrenar se ejecutó una prueba de memoria (\emph{preflight}) de cada modelo con un paso completo de
 entrenamiento; los picos medidos fueron 475\,MiB para U-Net, 505\,MiB para U-Net++ y 186\,MiB para
-SegFormer. El entrenamiento de los tres modelos tomó cerca de 13 minutos en total. La evaluación y la
-aplicación no requieren GPU.
+SegFormer. Estos valores describen el entorno histórico reportado, no una medición nueva en este
+Mac. Los CSV conservados no registran la duración total del entrenamiento ni tiempos CPU; no se
+estima esa duración a partir del forward GPU. La aplicación está implementada para CPU, pero su
+latencia con pesos reales no se verificó en esta entrega.
 
 %======================================================================
 \section{Resultados y análisis de resultados}\label{sec:resultados}
@@ -411,7 +426,8 @@ que no fue necesario eliminar ni imputar ninguna observación. Se convirtieron \
 el tipo categórico las identifica correctamente como conjuntos cerrados de valores.
 
 Todo el preprocesamiento de imágenes está en el módulo \texttt{src/preprocess.py}, de modo que el
-entrenamiento, la evaluación y la aplicación usan exactamente los mismos pasos:
+entrenamiento y la evaluación comparten el pipeline. Para cargas nuevas, \texttt{src/inference.py}
+reproduce la conversión RGB, el redimensionamiento y la transformación de validación:
 
 \begin{enumerate}
   \item \textbf{Decodificación de máscaras.} En esta competencia los píxeles del RLE se numeran por
@@ -420,15 +436,15 @@ entrenamiento, la evaluación y la aplicación usan exactamente los mismos pasos
         se decodificó y se volvió a codificar, y el resultado fue idéntico al RLE original.
   \item \textbf{Ajuste del tamaño de píxel.} Cada imagen se reescala a 0.4\,µm por píxel antes de
         redimensionarla. En \texttt{train.csv} todas las imágenes ya tienen ese valor, pero las
-        imágenes que se suban a la aplicación pueden venir de otras fuentes, como hizo el tercer
-        lugar del reto \parencite{jain2023hacking}.
+        cargas nuevas no declaran un espaciado verificado: la aplicación asume explícitamente
+        0.4\,µm/píxel y no ofrece ajuste físico por el usuario. Otra escala puede alterar el resultado.
   \item \textbf{Redimensionamiento a $384 \times 384$ píxeles}, con interpolación por área para las
         imágenes y vecino más cercano para las máscaras. La proporción de FTU de cada máscara se
-        mantiene tras redimensionar.
+        puede variar al redimensionar, especialmente en estructuras pequeñas.
   \item \textbf{Caché.} Leer un \texttt{.tiff} de $3000 \times 3000$ en cada época es muy lento, así
         que cada imagen y su máscara se guardan una sola vez como \texttt{.png} a 384\,px (702
         archivos, 89\,MB). A partir de ahí el entrenamiento, la evaluación y la aplicación leen de
-        esa caché.
+        esa caché. Las cargas nuevas no necesitan la caché del conjunto de datos.
   \item \textbf{Aumento de datos}, solo en entrenamiento (tabla~\ref{tab:augmentation}).
   \item \textbf{Normalización} con la media y la desviación estándar de ImageNet, porque los encoders
         de los tres modelos vienen preentrenados en ImageNet.
@@ -450,10 +466,10 @@ Desenfoque  & Gaussiano leve & Simula imágenes escaneadas con menos nitidez. \\
 \end{tabular}
 \end{table}
 
-Se optó por aumento de color en lugar de normalizar cada imagen a una tinción de referencia
-\parencite{macenko2009stain}, porque \textcite{tellez2019stain} encontraron que el aumento de color es
-lo que más mejora la generalización entre laboratorios, y porque el conjunto de entrenamiento no
-contiene imágenes de HuBMAP con las cuales calibrar una normalización.
+Se optó por aumento de color en lugar de una normalización dedicada a una tinción de referencia
+\parencite{macenko2009stain}, como estrategia para introducir variación durante el entrenamiento.
+\textcite{tellez2019stain} aportan contexto sobre ambas estrategias. Sin una comparación local ni
+muestras HuBMAP etiquetadas en esta partición, no se demuestra cuál generaliza mejor entre fuentes.
 
 %----------------------------------------------------------------------
 \subsection{Análisis exploratorio}
@@ -736,9 +752,10 @@ variable objetivo.
 \subsubsection{Exploración visual de las imágenes}
 
 Sobre una muestra reducida de \texttt{train\_images} se decodificó la máscara completa mediante la
-función inversa del rle y se superpuso sobre el tejido. Todas las muestras son cortes teñidos con
-PAS, con tonos rosados y morados semejantes entre sí, y en todas hay zonas de fondo blanco donde no
-hay tejido.
+función inversa del rle y se superpuso sobre el tejido. El análisis visual histórico describió la
+apariencia del tejido y zonas de fondo blanco, pero el color no identifica la tinción. Estas
+muestras proceden de HPA, cuya inmunohistoquímica con hematoxilina/DAB se documenta en
+\textcite{jain2023hacking}; no se confunden con las muestras HuBMAP PAS o H\&E.
 
 La máscara superpuesta muestra que las FTU no forman una sola región compacta: en la mayoría de los
 órganos son varias regiones separadas dentro de la misma imagen, y su forma cambia por completo de
@@ -771,8 +788,8 @@ cual concuerda con lo observado en la distribución de \texttt{mask\_frac}.
 \subsection{Entrenamiento y ajuste de parámetros}
 %----------------------------------------------------------------------
 
-Los tres modelos se entrenaron con el mismo protocolo, de modo que las diferencias entre ellos se
-deben a la arquitectura y no a la configuración:
+Los tres modelos se entrenaron con un protocolo común. La comparación es descriptiva de esta
+ejecución, sin réplicas que permitan atribuir causalmente las diferencias a la arquitectura:
 
 \begin{table}[H]
 \centering
@@ -832,9 +849,10 @@ Los tres modelos se detuvieron antes de las 20 épocas. SegFormer alcanzó su me
 en la época 5 y U-Net en la 8; en ambos casos la pérdida de entrenamiento siguió bajando mientras la
 de validación se estabilizó, la señal esperada para detener el entrenamiento. U-Net++ es distinto: su
 mejor época fue la primera y se detuvo en la sexta, aunque su Dice de entrenamiento subió de 0.37 a
-0.67 y su pérdida de entrenamiento bajó de 0.63 a 0.31. Es decir, seguía aprendiendo y lo detuvo el
-ruido del Dice de validación (solo 53 imágenes y un batch efectivo de 2), no un estancamiento real.
-Por eso su resultado debe leerse como un límite inferior de lo que puede lograr la arquitectura.
+0.67 y su pérdida de entrenamiento bajó de 0.63 a 0.31. El registro demuestra cinco épocas sin
+superar el mejor Dice de validación, no que el ruido causara la detención ni que se alcanzara el
+techo de la arquitectura. La variabilidad de validación es una hipótesis que requeriría réplicas.
+Se ejecutaron 29 épocas en total ($13+6+10$), frente al máximo conjunto de 60.
 
 %----------------------------------------------------------------------
 \subsection{Comparación de los algoritmos}
@@ -848,15 +866,13 @@ inferencia se midieron con una imagen a la vez, después de una pasada de calent
 \begin{table}[H]
 \centering
 \caption{Desempeño en el conjunto de prueba (53 imágenes)}\label{tab:prueba}
-\begin{tabular}{lrrrrr}
+\begin{tabular}{lrrrr}
 \toprule
-& & & \multicolumn{2}{c}{\textbf{ms por imagen}} & \\
-\cmidrule(lr){4-5}
-\textbf{Modelo} & \textbf{Dice} & \textbf{IoU} & \textbf{GPU} & \textbf{CPU} & \textbf{Dice val.} \\
+\textbf{Modelo} & \textbf{Dice} & \textbf{IoU} & \textbf{Forward GPU (ms)} & \textbf{Dice val.} \\
 \midrule
-SegFormer / MIT-B0  & \textbf{0.629} & \textbf{0.510} & 11.6 &  59 & 0.660 \\
-U-Net / ResNet34    & 0.506 & 0.400 & 11.8 &  95 & 0.606 \\
-U-Net++ / ResNet34  & 0.481 & 0.355 & 31.9 & 260 & 0.526 \\
+SegFormer / MIT-B0  & \textbf{0.629} & \textbf{0.510} & 11.6 & 0.660 \\
+U-Net / ResNet34    & 0.506 & 0.400 & 11.8 & 0.606 \\
+U-Net++ / ResNet34  & 0.481 & 0.355 & 31.9 & 0.526 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -870,15 +886,14 @@ U-Net++ / ResNet34  & 0.481 & 0.355 & 31.9 & 260 & 0.526 \\
 
 SegFormer obtiene el mayor Dice (0.629) y el mayor IoU (0.510), con una ventaja de 0.12 de Dice sobre
 U-Net. Los tres modelos bajan respecto a validación: SegFormer pierde 0.03, U-Net++ 0.045 y U-Net
-0.10. La caída de U-Net indica que elegir la mejor época con solo 53 imágenes de validación le dio
-un número optimista. Con 53 imágenes de prueba, cada imagen pesa casi 2\,\% del promedio, así que la
-diferencia entre U-Net y U-Net++ (0.025) no es concluyente; la de SegFormer sí lo es, porque es grande
-y se repite en todos los órganos.
+0.10. La caída de U-Net no permite identificar una causa por sí sola. Los 159 registros comparan
+los mismos 53 identificadores para cada modelo; cada imagen pesa casi 2\,\% del promedio.
+SegFormer presenta la mayor media observada, también por órgano, pero sin réplicas ni intervalos
+de confianza no se afirma significancia estadística ni superioridad general de la arquitectura.
 
 En tiempo, SegFormer y U-Net son equivalentes en GPU (cerca de 12\,ms por imagen), mientras que U-Net++
-tarda casi el triple por las conexiones densas de su decoder. En CPU la diferencia se amplía:
-SegFormer tarda 59\,ms, U-Net 95\,ms y U-Net++ 260\,ms por imagen, lo que confirma que los tres pueden
-usarse en una aplicación sin GPU.
+tarda casi el triple en el registro. Son tiempos de forward en la RTX 4060 Laptop GPU, batch 1,
+sin carga ni preprocesamiento; no son tiempos CPU ni un benchmark de la demo local.
 
 \subsubsection{Desempeño por órgano}
 
@@ -923,9 +938,9 @@ El análisis por órgano conecta los resultados con el análisis exploratorio:
         imagen, la mayor proporción de los cinco órganos, y tienen forma regular. En riñón los
         glomérulos ocupan solo el 2.8\,\%, pero son compactos y redondos, y es el órgano con más
         imágenes (69 de entrenamiento).
-  \item \textbf{Pulmón} es el peor en los tres modelos (Dice $\leq$ 0.10); con SegFormer, 4 de sus 7
+  \item \textbf{Pulmón} es el peor en los tres modelos (Dice 0.042, 0.061 y 0.103); con SegFormer, 4 de sus 7
         imágenes de prueba quedan por debajo de 0.1. En el reto también fue el órgano más difícil,
-        aunque los ganadores llegaron a 0.72--0.74. El análisis exploratorio ya lo anticipaba: es el
+        aunque los ganadores llegaron a 0.72--0.74 bajo otro protocolo. Como contexto exploratorio, es el
         órgano con la menor proporción de FTU (mediana de 1.3\,\%, tabla~\ref{tab:maskfrac}) y con
         menos imágenes (34 de entrenamiento). En el ejemplo de la figura~\ref{fig:ejemplos} la
         máscara real es una región diminuta y los tres modelos marcan zonas grandes de tejido:
@@ -945,27 +960,33 @@ Se selecciona \textbf{SegFormer / MIT-B0} como modelo principal de la aplicació
 
 \begin{itemize}
   \item Tiene el mayor Dice e IoU en prueba y es el mejor en los cinco órganos.
-  \item Es el que menos cae entre validación y prueba, es decir, el más estable.
-  \item Es el más rápido en CPU (59\,ms por imagen) y el más ligero: 3.7 millones de parámetros y un
+  \item Tiene la menor caída observada entre validación y prueba; no se midió estabilidad con réplicas.
+  \item Su forward GPU registrado es 11.6\,ms y es el más ligero: 3.7 millones de parámetros y un
         checkpoint de 15\,MB, contra 24 a 26 millones y unos 100\,MB de las otras dos arquitecturas.
-  \item Coincide con la literatura: SegFormer fue el mejor modelo individual del reto
+  \item Coincide a nivel de familia con la literatura: SegFormer MIT-B4 fue el mejor modelo individual del reto,
+        no la variante MIT-B0 aquí evaluada
         \parencite{jain2023hacking}.
 \end{itemize}
 
 \subsubsection{Limitaciones}
 
 \begin{itemize}
-  \item \textbf{U-Net++ está subestimado}, porque la detención temprana lo cortó en la época 1
-        mientras seguía aprendiendo. Su último lugar refleja el protocolo de entrenamiento más que la
-        arquitectura.
+  \item \textbf{Una ejecución por arquitectura.} U-Net++ ejecutó seis épocas y conservó la primera.
+        No se demostró que estuviera subestimado ni que el ruido explicara su resultado.
   \item \textbf{El conjunto de prueba es pequeño}: 53 imágenes en total y entre 7 y 15 por órgano.
         Una imagen mueve el promedio general casi 2\,\% y el de pulmón 14\,\%.
-  \item \textbf{La brecha con los ganadores} (Dice $\approx$ 0.835) se explica por el perfil de
+  \item \textbf{La comparación con los ganadores} (Dice $\approx$ 0.835) usa conjuntos y protocolos
+        diferentes. Hay diferencias en el perfil de
         entrenamiento: 384\,px en lugar de resoluciones mayores, batch efectivo de 2, un solo modelo
         por arquitectura, la variante más pequeña de SegFormer (MIT-B0 contra MIT-B4) y sin datos
-        externos, ensambles ni pseudo-etiquetado.
+        externos, ensambles ni pseudo-etiquetado, pero no se aislaron sus efectos ni se probaron causas.
   \item \textbf{Solo hay imágenes de HPA}, así que no se pudo medir el desempeño sobre muestras de
         HuBMAP, que es la dificultad central del reto.
+  \item \textbf{Partición por imagen.} No se verificó independencia por donante; no se descarta
+        dependencia entre muestras de una misma persona.
+  \item \textbf{Activos ausentes en la entrega local.} Los pesos, \texttt{train.csv} y la caché no
+        están disponibles. Esto limita reproducir la inferencia y el EDA completo, sin invalidar
+        los CSV y las figuras históricos conservados. El prototipo no tiene validación clínica.
 \end{itemize}
 
 Las mejoras más directas serían entrenar U-Net++ con más paciencia o un batch efectivo mayor, usar
@@ -975,53 +996,70 @@ parches a mayor resolución para el pulmón y probar una variante más grande de
 \subsection{Aplicación}
 %----------------------------------------------------------------------
 
-% TODO: completar con capturas de pantalla cuando la aplicación esté terminada.
-
-Para probar los modelos se construyó una aplicación web con Streamlit, con gráficas interactivas de
-Plotly. Se eligió Streamlit porque permite construir una interfaz en Python puro, reutilizando sin
-cambios el módulo de preprocesamiento (\texttt{src/preprocess.py}) y la carga de modelos del
-proyecto, y porque se ejecuta localmente con un solo comando
+Se construyó una aplicación web con Streamlit y gráficas interactivas de Plotly. Streamlit permite
+una interfaz en Python que integra el pipeline de inferencia del proyecto, y se ejecuta localmente
+con un solo comando
 (\texttt{uv run streamlit run app/Inicio.py}). Plotly ofrece gráficas con información al pasar el
 cursor, zoom y filtros, que son las gráficas interactivas que pide la aplicación.
 
-La aplicación tiene tres páginas:
+La aplicación tiene cuatro páginas y no ejecuta una nueva evaluación del conjunto de prueba:
 
 \begin{itemize}
-  \item \textbf{Exploración de los datos.} Gráficas interactivas de las variables del conjunto de datos
-        (órgano, fuente, sexo, edad, tamaño de imagen y proporción de FTU), con filtros, y los
-        hallazgos del análisis exploratorio que explican los resultados de los modelos.
-  \item \textbf{Predicción.} El usuario sube una imagen nueva o elige una del conjunto de prueba, y
-        escoge un modelo o los tres. El preprocesamiento (ajuste de tamaño de píxel,
-        redimensionamiento y normalización) ocurre sin que el usuario lo note, y la máscara predicha
-        se devuelve al tamaño original y se superpone sobre la imagen. Si la imagen es del conjunto de
-        prueba, se muestran también la máscara real y el Dice de cada modelo.
+  \item \textbf{Inicio.} Resumen de los modelos y avisos de activos ausentes.
+  \item \textbf{Exploración de los datos.} Sin \texttt{train.csv}, muestra únicamente los metadatos
+        disponibles de \texttt{splits.csv}: órgano y partición, con filtros. Las vistas de fuente,
+        sexo, edad, dimensiones y cobertura requieren recuperar los metadatos; no se inventan.
+  \item \textbf{Predicción.} Acepta exclusivamente imágenes nuevas PNG, JPEG o TIFF de una sola
+        imagen, hasta 64 MiB y nueve millones de píxeles. Con checkpoints confiables permitiría
+        seleccionar uno o todos los modelos disponibles. Convierte a RGB, redimensiona a
+        $384\times384$, normaliza con ImageNet y aplica el umbral fijo $\geq0.5$. Asume
+        0.4\,µm/píxel sin ajuste físico configurable. La salida es una máscara binaria de FTU,
+        no una clasificación de órgano; la selección de órgano es información descriptiva.
+        Restaura la máscara al tamaño original y muestra superposición, área FTU y tiempo CPU.
+        No ofrece selector de prueba, máscara real ni Dice/IoU para cargas sin anotaciones.
+        Actualmente la inferencia está bloqueada por ausencia de los tres checkpoints.
   \item \textbf{Rendimiento de los modelos.} Gráficas interactivas de Dice, IoU, Dice por órgano,
         distribución del Dice por imagen, tiempos de inferencia y curvas de entrenamiento, que el
-        usuario puede mostrar u ocultar.
+        usuario puede mostrar u ocultar. Reutiliza 159 filas de métricas (53 imágenes comunes),
+        los historiales y los experimentos existentes; los filtros de órgano no alteran las curvas
+        globales. El control de ocultamiento persiste al navegar a Inicio.
 \end{itemize}
 
 La aplicación usa los mismos colores que las figuras de este informe para cada modelo (azul para
 U-Net, naranja para U-Net++ y verde para SegFormer), elegidos para distinguirse también con las formas
-más comunes de daltonismo, y cian para las máscaras, que contrasta con los tonos rosados y morados de
-la tinción.
+más comunes de daltonismo, con etiquetas y estilos de línea adicionales. El cian identifica las
+máscaras y contrasta con la tinción; no se afirma una auditoría formal de accesibilidad.
 
-% \begin{figure}[H]
-% \centering
-% \includegraphics[width=\textwidth]{app_exploracion.png}
-% \caption{Página de exploración de los datos.}
-% \end{figure}
-%
-% \begin{figure}[H]
-% \centering
-% \includegraphics[width=\textwidth]{app_prediccion.png}
-% \caption{Página de predicción sobre una imagen nueva.}
-% \end{figure}
-%
-% \begin{figure}[H]
-% \centering
-% \includegraphics[width=\textwidth]{app_rendimiento.png}
-% \caption{Página de rendimiento de los modelos.}
-% \end{figure}
+Las capturas de la entrega deben corresponder a la aplicación local sin alterar datos ni simular
+predicciones. El estado bloqueado es parte de la evidencia, no una inferencia exitosa.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth,height=0.72\textheight,keepaspectratio]{app_inicio.png}
+\caption{Inicio de la aplicación local: resultados históricos y aviso de activos ausentes.
+Captura auténtica del 11 de octubre de 2026.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth,height=0.72\textheight,keepaspectratio]{app_exploracion.png}
+\caption{Exploración local con 351 metadatos de partición; \texttt{train.csv} está ausente.
+Captura auténtica del 11 de octubre de 2026, sin carga de imágenes.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth,height=0.72\textheight,keepaspectratio]{app_prediccion.png}
+\caption{Predicción bloqueada por checkpoints ausentes. No hay una máscara simulada ni una
+inferencia real. Captura auténtica del 11 de octubre de 2026.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth,height=0.72\textheight,keepaspectratio]{app_rendimiento.png}
+\caption{Vista de rendimiento: 53 identificadores comunes, filtros y control de ocultamiento.
+Solo resultados CSV existentes; captura auténtica del 11 de octubre de 2026.}
+\end{figure}
 
 %======================================================================
 \section{Conclusiones}\label{sec:conclusiones}
@@ -1036,26 +1074,34 @@ la tinción.
         de tinción con aumento de datos.
   \item \textbf{Preprocesamiento.} Se construyó un pipeline reutilizable que decodifica las máscaras
         (verificado en las 351 imágenes), ajusta el tamaño de píxel, redimensiona a 384\,px y aplica
-        aumento de datos. El mismo módulo prepara las imágenes nuevas en la aplicación.
+        aumento de datos. El pipeline de inferencia reproduce la conversión y la transformación
+        de validación para cargas nuevas, asumiendo el espaciado de referencia.
   \item \textbf{Modelos.} Se seleccionaron y entrenaron tres arquitecturas a partir de la revisión
         bibliográfica: U-Net, U-Net++ y SegFormer, con un protocolo común que cabe en una GPU portátil
         de 6\,GB.
   \item \textbf{Evaluación y selección.} SegFormer / MIT-B0 fue el mejor modelo en el conjunto de
-        prueba (Dice de 0.629 e IoU de 0.510), el mejor en los cinco órganos, el más estable entre
-        validación y prueba y el más ligero, por lo que se seleccionó para la aplicación. El resultado
+        prueba (Dice de 0.629 e IoU de 0.510), el mejor observado en los cinco órganos y el más ligero,
+        por lo que se seleccionó como referencia de la aplicación. No se probó superioridad general
+        ni significancia estadística. El resultado
         coincide con la literatura sobre el reto. El pulmón fue el órgano más difícil para los tres
-        modelos, como anticipaba el análisis exploratorio.
+        modelos; el EDA aporta contexto, no demuestra la causa.
   \item \textbf{Aplicación.} Se desarrolló una aplicación en Streamlit que permite explorar los datos,
-        segmentar imágenes nuevas con uno o los tres modelos y comparar su rendimiento con gráficas
-        interactivas.
+        comparar los resultados históricos y ocultarlos con un control persistente. La implementación
+        de cargas nuevas está completa y verificada con pruebas sintéticas, pero no se pudo aceptar
+        la inferencia con pesos entrenados ausentes. Por tanto, el objetivo de segmentar imágenes
+        nuevas de extremo a extremo está pendiente, no se declara cumplido en esta entrega sin pesos.
 \end{enumerate}
 
 Sobre la efectividad de los algoritmos: los modelos segmentan bien los órganos con FTU grandes o de
 forma regular (riñón, intestino grueso y próstata, con Dice de 0.67 a 0.81 para SegFormer), pero no
-son confiables en pulmón. La distancia con las soluciones ganadoras se explica sobre todo por la
-escala del entrenamiento y no por la elección de arquitectura: en el reto, un SegFormer más grande
+son confiables en pulmón. La comparación con las soluciones ganadoras no permite probar las causas
+de la diferencia: en el reto, un SegFormer más grande
 (MIT-B4), entrenado a mayor resolución y con datos externos, llegó por sí solo a un Dice de 0.828
 \parencite{jain2023hacking}.
+
+Esta entrega conserva los resultados históricos y sus figuras sin reevaluación ni entrenamiento.
+Los pesos podrán añadirse después desde una fuente confiable; su recuperación fue diferida por
+el equipo. El sistema es un prototipo de investigación, no una herramienta de diagnóstico.
 
 %======================================================================
 \printbibliography[title={Referencias}]
