@@ -9,374 +9,361 @@
 
 \usetheme{metropolis}
 \metroset{numbering=fraction, progressbar=frametitle, block=fill}
-
 \definecolor{uvgazul}{RGB}{31,58,120}
 \setbeamercolor{frametitle}{bg=uvgazul}
 \setbeamercolor{progress bar}{fg=uvgazul!60}
 \setbeamercolor{alerted text}{fg=uvgazul}
-
+\setbeamerfont{subtitle}{size=\small}
+\setbeamerfont{author}{size=\small}
+\setbeamerfont{institute}{size=\scriptsize}
+\setbeamertemplate{title page}{
+  \begin{minipage}[b][0.90\paperheight]{\textwidth}
+    \vfill
+    \usebeamertemplate*{title}
+    \usebeamertemplate*{subtitle}
+    \usebeamertemplate*{title separator}
+    \usebeamertemplate*{author}
+    \usebeamertemplate*{date}
+    \usebeamertemplate*{institute}
+    \vfill
+  \end{minipage}
+}
 \graphicspath{{../informe/figuras/}}
 
-\title{Análisis Exploratorio}
+\title{Resultados y aplicación}
 \subtitle{Reto 18: Hackeando el cuerpo humano \\ HuBMAP: segmentación de unidades funcionales de tejido}
 \author{Iris Ayala (23965) \and Jonatan Díaz (23837) \and Anggie Quezada (23643)}
 \institute{Universidad del Valle de Guatemala \\ CC3084 Data Science, Semestre II, 2026}
-\date{\today}
+\date{12 de octubre de 2026}
 
 \begin{document}
-
 \maketitle
 
-%======================================================================
-\section{Introducción}
-%======================================================================
-
-\begin{frame}{Introducción y base conceptual}
-  \begin{columns}[T]
-    \begin{column}{0.5\textwidth}
-      \begin{block}{Contexto}
-        \begin{itemize}
-          \item HuBMAP: mapear el cuerpo humano a nivel de célula
-          \item \alert{FTU}: grupo de células alrededor de un vaso sanguíneo con una función en el
-                órgano
-          \item Cinco órganos, cinco tipos de FTU distintos
-          \item Tinción \alert{PAS} $\rightarrow$ tono rosado/morado en las imágenes
-        \end{itemize}
-      \end{block}
-    \end{column}
-    \begin{column}{0.46\textwidth}
-      \begin{block}{Situación actual}
-        \begin{itemize}
-          \item Hoy un \alert{patólogo marca las FTU a mano}
-          \item Lento, subjetivo, no escala
-          \item Muestras del mismo órgano se ven distinto según el laboratorio
-        \end{itemize}
-      \end{block}
-    \end{column}
-  \end{columns}
+\begin{frame}{Problema, objetivo y resultado principal}
+  \begin{block}{Segmentación, no clasificación de órganos}
+    Dada una imagen histológica, producir una máscara binaria de unidades
+    funcionales de tejido (FTU): FTU frente a fondo. El órgano es metadato,
+    no una clase predicha. Contexto: Jain et al. (2023) \cite{jain}.
+  \end{block}
+  \begin{itemize}
+    \item Comparar tres arquitecturas con el mismo preprocesamiento y split.
+    \item Medir solapamiento, diferencias por órgano y tiempo registrado.
+    \item Integrar exploración, resultados e ingreso de imágenes en Streamlit.
+  \end{itemize}
+  \alert{SegFormer / MIT-B0 obtiene el mayor Dice medio registrado: 0.629.}
+  La predicción local con pesos reales sigue pendiente de recuperar checkpoints.
 \end{frame}
 
-\begin{frame}{Problema científico y objetivos}
-  \begin{alertblock}{Pregunta de investigación}
-    A partir de una imagen de tejido, ¿se puede entrenar un modelo que marque con precisión dónde
-    están las unidades funcionales de tejido, sin importar el órgano ni la fuente de la muestra?
-  \end{alertblock}
-
-  \vspace{0.6em}
-  \textbf{Objetivo general.} Explorar y describir los datos para entender cómo están compuestas las
-  imágenes y las variables que las acompañan, como base para una futura solución de segmentación.
-
-  \vspace{0.4em}
-  \textbf{Objetivos específicos.}
-  \begin{enumerate}
-    \item Describir las variables numéricas y categóricas y detectar diferencias entre grupos.
-    \item Analizar cómo se relacionan órgano, fuente, edad y sexo.
-    \item Cuantificar el área que ocupa la FTU y comparar su distribución entre órganos.
-  \end{enumerate}
-\end{frame}
-
-%======================================================================
-\section{Los datos}
-%======================================================================
-
-\begin{frame}{Qué tenemos}
-  \begin{columns}[T]
-    \begin{column}{0.46\textwidth}
-      \begin{block}{\texttt{train.csv}}
-        \begin{itemize}
-          \item \alert{351} observaciones, una por imagen
-          \item \alert{10} variables
-          \item \alert{0} valores nulos
-          \item \alert{0} filas duplicadas
-        \end{itemize}
-      \end{block}
-      \vspace{0.3em}
-      Limpieza aplicada: convertir \texttt{organ}, \texttt{data\_source} y \texttt{sex} a tipo
-      categórico. Nada más hizo falta.
-    \end{column}
-    \begin{column}{0.5\textwidth}
-      \small
-      \begin{tabular}{ll}
-        \toprule
-        \textbf{Variable} & \textbf{Tipo} \\
-        \midrule
-        \texttt{id}                & identificador \\
-        \texttt{organ}             & categórica \\
-        \texttt{data\_source}      & categórica \\
-        \texttt{sex}               & categórica \\
-        \texttt{img\_height/width} & numérica \\
-        \texttt{pixel\_size}       & numérica \\
-        \texttt{tissue\_thickness} & numérica \\
-        \texttt{age}               & numérica \\
-        \texttt{rle}               & texto (máscara) \\
-        \bottomrule
-      \end{tabular}
-    \end{column}
-  \end{columns}
-\end{frame}
-
-\begin{frame}{La columna \texttt{rle}: dónde está la información real}
-  La máscara de la FTU no viene como imagen, viene comprimida en
-  \alert{run-length encoding}: pares de (posición inicial, longitud).
-
-  \vspace{0.8em}
-  \begin{exampleblock}{Por qué importa}
-    Guardar una máscara de $3000 \times 3000$ píxeles como matriz sería inviable dentro de una celda
-    de texto. El rle la reduce a unos miles de caracteres.
-  \end{exampleblock}
-
-  \vspace{0.8em}
-  De ahí construimos la variable que de verdad describe el problema:
-
-  \begin{equation*}
-    \texttt{mask\_frac} =
-    \frac{\text{píxeles marcados como FTU}}{\texttt{img\_height} \times \texttt{img\_width}}
-  \end{equation*}
-
-  Basta con \alert{sumar las longitudes}, sin reconstruir la máscara completa.
-\end{frame}
-
-%======================================================================
-\section{Análisis exploratorio}
-%======================================================================
-
-\begin{frame}{Variables univariadas}
-  \begin{figure}
-    \centering
-    \includegraphics[width=0.92\textwidth]{univariadas.png}
-  \end{figure}
-  \small
-  Edad de 21 a 84 años, mediana 60. Casi todas las imágenes son de $3000 \times 3000$. La proporción
-  de FTU está \alert{sesgada a la derecha}: mediana de apenas 0.059.
-\end{frame}
-
-\begin{frame}{Variables categóricas}
-  \begin{figure}
-    \centering
-    \includegraphics[width=0.95\textwidth]{categoricas.png}
-  \end{figure}
-  \small
-  Desbalance por órgano (99 riñones contra 48 pulmones) y por sexo (229 hombres contra 122 mujeres).
-  Y \texttt{data\_source} tiene \alert{una sola barra}. Volvemos a eso en un momento.
-\end{frame}
-
-\begin{frame}{Cruces por órgano}
-  \begin{figure}
-    \centering
-    \includegraphics[width=0.95\textwidth]{cruces.png}
-  \end{figure}
-  \small
-  Próstata es 100\,\% masculino, lo cual es biología y no un error. Intestino grueso tiene una edad
-  mediana de 83 años contra 57 a 59 del resto: \alert{órgano y edad no son independientes}.
-\end{frame}
-
-\begin{frame}{Outliers: cuidado con aplicarlos a ciegas}
+\begin{frame}{Datos y EDA que orientan la interpretación}
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
-      \begin{block}{\texttt{age}: 13 outliers}
-        Todos con valor 21 años. Pero 21 cae dentro del rango normal de pulmón y bazo.
+      \begin{block}{351 imágenes etiquetadas}
+        Riñón: 99; próstata: 93; intestino grueso: 58;
+        bazo: 53; pulmón: 48. Anotaciones FTU en RLE.
+      \end{block}
+      \small
+      EDA previo: fuente HPA, tamaño de píxel de referencia
+      $0.4\,\mu$m; mediana global de cobertura FTU: 5.9\,\%.
+      No confundir esta mediana con un porcentaje global de píxeles.
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Implicaciones}
+        \begin{itemize}
+          \item Desbalance de órganos y de FTU frente a fondo.
+          \item Cobertura distinta según órgano: no basta el promedio global.
+          \item Edad, sexo y órgano se relacionan; EDA no demuestra causalidad.
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+  \small Fuente: EDA previo y \texttt{splits.csv}; \texttt{train.csv} no está disponible localmente.
+\end{frame}
 
-        \vspace{0.4em}
-        Son atípicos \alert{solo si se ignora el órgano}.
+\begin{frame}{Split reproducible y límites de fuga de información}
+  \small
+  \renewcommand{\arraystretch}{0.95}
+  \centering
+  \begin{tabular}{lrrr}
+    \toprule
+    Órgano & Entrenamiento & Validación & Prueba \\
+    \midrule
+    Riñón & 69 & 15 & 15 \\
+    Próstata & 65 & 14 & 14 \\
+    Intestino grueso & 40 & 9 & 9 \\
+    Bazo & 37 & 8 & 8 \\
+    Pulmón & 34 & 7 & 7 \\
+    \midrule
+    Total & 245 & 53 & 53 \\
+    \bottomrule
+  \end{tabular}
+  \begin{itemize}
+    \item Estratificación por órgano, semilla 42; conservar \texttt{data/splits.csv}.
+    \item Checkpoint elegido por Dice de validación; umbral fijo de 0.5.
+    \item Prueba: solo resultados ya registrados; no ajustar ni reevaluar aquí.
+    \item Split por imagen: no demuestra separación por donante o laboratorio.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Entrada compartida: de la histología al tensor}
+  \begin{enumerate}
+    \item Conversión RGB uint8; referencia física de $0.4\,\mu$m/píxel.
+    \item Redimensionamiento a $384\times384$; máscaras con vecino más cercano.
+    \item Normalización ImageNet: media $(0.485,0.456,0.406)$ y
+          desviación $(0.229,0.224,0.225)$.
+    \item Solo entrenamiento: volteos, rotación, escala y cambios de color,
+          brillo, gamma y desenfoque. Validación/prueba: sin aumentación aleatoria.
+  \end{enumerate}
+  \begin{block}{Qué recibe el modelo}
+    Píxeles de la imagen; edad, sexo, órgano y cobertura RLE son descriptivos.
+    La máscara es el objetivo, nunca una entrada de inferencia.
+  \end{block}
+  \small Aumentación de tinción como motivación: Tellez et al. (2019) \cite{tellez}.
+  No se implementa una normalización de tinción dedicada.
+\end{frame}
+
+\begin{frame}{Tres modelos: comparación controlada}
+  \begin{description}
+    \item[U-Net / ResNet34] Línea base encoder--decoder con conexiones de salto:
+      detalle local y contexto \cite{unet}.
+    \item[U-Net++ / ResNet34] Conexiones de salto rediseñadas para explotar
+      características multiescala \cite{unetpp}.
+    \item[SegFormer / MIT-B0] Encoder transformer jerárquico y decoder ligero;
+      alternativa compacta a las redes convolucionales \cite{segformer}.
+  \end{description}
+  \begin{block}{Condiciones comunes}
+    Encoder preentrenado; salida de un canal, logits binarios;
+    misma resolución, split, pérdida y umbral.
+    Es una comparación de estas ejecuciones, no de todo el potencial de cada familia.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Perfil conservador realmente utilizado}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Memoria y optimización}
+        \begin{itemize}
+          \item Resolución: $384\times384$.
+          \item Batch físico: 1; acumulación: 2.
+          \item Batch efectivo: 2; AMP en CUDA.
+          \item AdamW, learning rate $10^{-4}$.
+          \item Weight decay $10^{-2}$; Dice + BCE.
+        \end{itemize}
       \end{block}
     \end{column}
     \begin{column}{0.48\textwidth}
-      \begin{block}{\texttt{img\_height}: 25 outliers}
-        El 75\,\% de las imágenes mide exactamente 3000 px, así que el rango intercuartílico es
-        \alert{cero} y el método marca todo lo que no sea 3000.
-
-        \vspace{0.4em}
-        La variable es casi binaria, no continua.
+      \begin{block}{Selección y ejecución}
+        \begin{itemize}
+          \item Hasta 20 épocas; paciencia: 5.
+          \item Mejor checkpoint por Dice de validación.
+          \item Semilla: 42; modelos secuenciales.
+          \item Ejecución Windows registrada; RTX 4060 Laptop.
+        \end{itemize}
       \end{block}
     \end{column}
   \end{columns}
-
-  \vspace{1em}
-  En ambos casos se documenta el hallazgo y \alert{no se elimina nada}. Sobre valores faltantes: no
-  hay ninguno en las 351 filas.
+  \small Fuentes: \texttt{experimentos\_modelos.csv} y perfil del arnés Windows.
+  No se modificó el perfil ni se ejecutó entrenamiento para esta entrega.
 \end{frame}
 
-%======================================================================
-\section{Hallazgos}
-%======================================================================
-
-\begin{frame}{Hallazgo 1: hay variables que no dicen nada}
-  \begin{columns}[T]
-    \begin{column}{0.52\textwidth}
-      \begin{alertblock}{Constantes en las 351 filas}
-        \texttt{pixel\_size} $= 0.4$
-
-        \texttt{tissue\_thickness} $= 4.0$
-      \end{alertblock}
-      Varianza cero. Por eso aparecen como \texttt{NaN} en la matriz de correlación: el coeficiente
-      de Pearson implica dividir entre la desviación estándar.
-
-      \vspace{0.5em}
-      \alert{No es un bug del código.}
-    \end{column}
-    \begin{column}{0.44\textwidth}
-      \begin{block}{Y además}
-        \texttt{img\_height} $=$ \texttt{img\_width} en todas las filas: las imágenes son cuadradas.
-
-        \vspace{0.4em}
-        326 de 351 son de $3000 \times 3000$.
-      \end{block}
-      \vspace{0.3em}
-      De las variables tabulares, solo \texttt{organ}, \texttt{sex}, \texttt{age} y la derivada de
-      \texttt{rle} tienen información real.
-    \end{column}
-  \end{columns}
+\begin{frame}{Historial: el mejor checkpoint no es la última época}
+  \centering
+  \begin{tabular}{lrrr}
+    \toprule
+    Modelo & Épocas ejecutadas & Mejor época & Mejor val Dice \\
+    \midrule
+    U-Net & 13 & 8 & 0.6058 \\
+    U-Net++ & 6 & 1 & 0.5256 \\
+    SegFormer & 10 & 5 & \textbf{0.6596} \\
+    \bottomrule
+  \end{tabular}
+  \begin{itemize}
+    \item Los tres registros indican detención temprana, no 20 épocas completas.
+    \item U-Net++ termina con train Dice 0.6728 y val Dice 0.5214.
+    \item Esa divergencia no prueba que el ruido causara la detención,
+          ni fija un techo de rendimiento de U-Net++.
+  \end{itemize}
+  \small Fuentes: historial y experimentos existentes; no réplicas ni búsqueda adicional.
 \end{frame}
 
-\begin{frame}{Hallazgo 2: la FTU no ocupa lo mismo en cada órgano}
-  \begin{columns}[T]
-    \begin{column}{0.6\textwidth}
-      \begin{figure}
-        \centering
-        \includegraphics[width=\textwidth]{ftu_por_organo.png}
-      \end{figure}
-    \end{column}
-    \begin{column}{0.38\textwidth}
-      \small
-      \begin{tabular}{lr}
-        \toprule
-        \textbf{Órgano} & \textbf{mediana} \\
-        \midrule
-        largeintestine & 19.6\,\% \\
-        prostate       & 13.8\,\% \\
-        spleen         &  8.6\,\% \\
-        kidney         &  2.8\,\% \\
-        lung           &  1.3\,\% \\
-        \midrule
-        \textbf{global} & \textbf{5.9\,\%} \\
-        \bottomrule
-      \end{tabular}
-
-      \vspace{0.8em}
-      \alert{Quince veces} de diferencia entre intestino grueso y pulmón.
-
-      \vspace{0.5em}
-      Encontrar la FTU no es el mismo problema en cada órgano.
-    \end{column}
-  \end{columns}
+\begin{frame}{Curvas registradas de entrenamiento y validación}
+  \centering
+  \includegraphics[width=\textwidth,height=0.62\textheight,keepaspectratio]{resultados_curvas.png}
+  \par\small Línea punteada: entrenamiento; continua: validación;
+  círculo: mejor época. El aumento en entrenamiento no garantiza mejora en validación.
 \end{frame}
 
-\begin{frame}{Hallazgo 3: una correlación que engaña}
-  \begin{figure}
-    \centering
-    \includegraphics[width=0.93\textwidth]{simpson.png}
-  \end{figure}
+\begin{frame}{Cómo leer las métricas y el tiempo}
+  \[
+    \mathrm{Dice}=\frac{2|P\cap G|}{|P|+|G|},\qquad
+    \mathrm{IoU}=\frac{|P\cap G|}{|P\cup G|}
+  \]
+  \begin{itemize}
+    \item $P$: máscara predicha; $G$: anotación. Rango $[0,1]$, mayor es mejor.
+    \item Sigmoid y umbral $\geq0.5$; ambas máscaras vacías reciben 1.
+    \item Media por imagen: 53 imágenes comunes, 159 filas para tres modelos.
+          No es Dice calculado sobre todos los píxeles agregados.
+    \item Tiempo del forward registrado en RTX 4060 Laptop, batch 1:
+          excluye carga, preprocesamiento y presentación de resultados.
+  \end{itemize}
+  \alert{No es un benchmark del Mac ni una medida de latencia extremo a extremo.}
 \end{frame}
 
-\begin{frame}{Hallazgo 3: paradoja de Simpson}
-  \begin{columns}[T]
-    \begin{column}{0.42\textwidth}
-      \small
-      \begin{tabular}{lr}
-        \toprule
-        \textbf{Grupo} & \textbf{r (edad, FTU)} \\
-        \midrule
-        \textbf{Global} & \textbf{$+0.248$} \\
-        \midrule
-        kidney          & $-0.178$ \\
-        largeintestine  & $+0.139$ \\
-        lung            & $-0.396$ \\
-        prostate        & $+0.003$ \\
-        spleen          & $+0.028$ \\
-        \bottomrule
-      \end{tabular}
-    \end{column}
-    \begin{column}{0.55\textwidth}
-      La correlación global \alert{no mide edad contra tamaño de FTU}. Mide el órgano disfrazado.
-
-      \vspace{0.6em}
-      Intestino grueso tiene a la vez los donantes más viejos (mediana 83 años) y las FTU más
-      grandes (19.6\,\%). Al mezclar todo, ese grupo arrastra la correlación hacia arriba.
-
-      \vspace{0.6em}
-      \begin{alertblock}{Implicación}
-        Cualquier correlación calculada sobre este conjunto \alert{sin estratificar por órgano} es
-        poco confiable.
-      \end{alertblock}
-    \end{column}
-  \end{columns}
+\begin{frame}{Resultados globales en las 53 imágenes de prueba}
+  \centering
+  \includegraphics[width=0.82\textwidth,height=0.42\textheight,keepaspectratio]{resultados_modelos.png}
+  \par\small
+  \begin{tabular}{lrrr}
+    \toprule
+    Modelo & Dice & IoU & Forward medio (ms) \\
+    \midrule
+    U-Net & 0.506 & 0.400 & 11.8 \\
+    U-Net++ & 0.481 & 0.355 & 31.9 \\
+    SegFormer & \textbf{0.629} & \textbf{0.510} & 11.6 \\
+    \bottomrule
+  \end{tabular}
+  \par\scriptsize Fuente: medias de \texttt{data/metrics.csv}, sin nueva inferencia.
 \end{frame}
 
-\begin{frame}{Hallazgo 4: el desbalance está en varios ejes a la vez}
-  \begin{columns}[T]
-    \begin{column}{0.31\textwidth}
-      \begin{block}{Por órgano}
-        99 riñones \\ contra \\ 48 pulmones
-      \end{block}
-    \end{column}
-    \begin{column}{0.31\textwidth}
-      \begin{block}{Por sexo}
-        229 hombres \\ contra \\ 122 mujeres
-      \end{block}
-    \end{column}
-    \begin{column}{0.31\textwidth}
-      \begin{block}{Por edad}
-        Concentrado \\ entre \\ 55 y 73 años
-      \end{block}
-    \end{column}
-  \end{columns}
-
-  \vspace{1.2em}
-  Y no son independientes entre sí: los 93 casos de próstata son todos masculinos, e intestino
-  grueso concentra a los donantes de mayor edad.
-
-  \vspace{0.8em}
-  \alert{El desbalance de un eje se filtra en los otros.}
+\begin{frame}{El órgano cambia la lectura del promedio}
+  \centering
+  \includegraphics[width=0.92\textwidth,height=0.64\textheight,keepaspectratio]{resultados_organos.png}
+  \par\small SegFormer tiene el mayor Dice medio en los cinco órganos del registro.
+  Pulmón sigue siendo el grupo de menor solapamiento en los tres modelos.
 \end{frame}
 
-\begin{frame}{Hallazgo 5: la dificultad del reto no está en los datos}
-  \begin{alertblock}{Las 351 filas tienen \texttt{data\_source = HPA}}
-    No hay ni una sola observación de HuBMAP en \texttt{train.csv}.
-  \end{alertblock}
-
-  \vspace{0.8em}
-  Las muestras de HuBMAP quedan del lado del conjunto de prueba de la competencia.
-
-  \vspace{0.8em}
-  Pero la dificultad central del reto es justamente que el modelo funcione con muestras preparadas
-  en \alert{laboratorios distintos}.
-
-  \vspace{0.8em}
-  \begin{exampleblock}{Conclusión}
-    La variabilidad que el modelo tiene que superar \alert{no se puede observar ni medir} dentro de
-    los datos de entrenamiento.
-  \end{exampleblock}
+\begin{frame}{Desglose: tamaños pequeños y diferencias descriptivas}
+  \centering
+  \begin{tabular}{lrrrr}
+    \toprule
+    Órgano & $n$ & U-Net & U-Net++ & SegFormer \\
+    \midrule
+    Riñón & 15 & 0.751 & 0.504 & 0.807 \\
+    Próstata & 14 & 0.603 & 0.604 & 0.673 \\
+    Intestino grueso & 9 & 0.656 & 0.687 & 0.696 \\
+    Bazo & 8 & 0.115 & 0.354 & 0.602 \\
+    Pulmón & 7 & 0.042 & 0.061 & 0.103 \\
+    \bottomrule
+  \end{tabular}
+  \begin{itemize}
+    \item Dice medio por órgano; los tamaños no son iguales.
+    \item La cobertura FTU del EDA contextualiza el problema,
+          pero no demuestra por qué falla un modelo.
+    \item Sin intervalos de confianza o réplicas: no afirmar significancia.
+  \end{itemize}
+  \small Fuente: \texttt{metrics.csv}; no inspección ni selección nueva de imágenes de prueba.
 \end{frame}
 
-%======================================================================
-\section{Conclusiones}
-%======================================================================
+\begin{frame}{Selección: SegFormer como opción de referencia}
+  \begin{block}{Evidencia de esta ejecución}
+    Mayor mejor Dice de validación (0.6596), mayor Dice e IoU medios de prueba
+    (0.629 y 0.510) y mayor Dice medio en cada órgano registrado.
+  \end{block}
+  \begin{itemize}
+    \item El checkpoint se eligió con validación, no con prueba.
+    \item Mantener U-Net y U-Net++ como comparadores en la aplicación.
+    \item Forward medio parecido a U-Net; no declarar superioridad de velocidad
+          con una diferencia de solo 0.2 ms y sin estudio de variabilidad.
+    \item La recomendación es local a este split y perfil; no valida desempeño
+          clínico ni generalización a otros laboratorios.
+  \end{itemize}
+\end{frame}
 
-\begin{frame}{Siguientes pasos}
+\begin{frame}{Demostración honesta: cuatro páginas implementadas}
+  \begin{description}
+    \item[Inicio] Resumen registrado, modelo de referencia y alertas de activos faltantes.
+    \item[Exploración] Filtros y gráficos de metadatos; sin \texttt{train.csv},
+      solo información disponible en \texttt{splits.csv}.
+    \item[Predicción] Ingreso de imagen y selección de uno/todos los modelos
+      disponibles; actualmente bloqueada por falta de checkpoints.
+    \item[Rendimiento] Dice/IoU, distribuciones, órganos, tiempos y curvas
+      interactivas a partir de CSV, sin reevaluar imágenes.
+  \end{description}
+  \begin{block}{Control lateral: Mostrar rendimiento}
+    Oculta resumen, métricas, tablas y curvas en Inicio/Rendimiento;
+    la preferencia persiste al navegar. No modifica los resultados guardados.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Nueva imagen: flujo disponible al recuperar los pesos}
   \begin{enumerate}
-    \item \textbf{Descartar las variables constantes.} \texttt{pixel\_size} y
-          \texttt{tissue\_thickness} no discriminan nada.
-
-    \item \textbf{Tratar el problema como segmentación desbalanceada.} Con 5.9\,\% de píxeles
-          positivos, predecir fondo en toda la imagen daría más del 94\,\% de exactitud por píxel y
-          sería inútil. Usar Dice o IoU, no exactitud.
-
-    \item \textbf{Validar por órgano, no solo en global.} El promedio esconde que pulmón y riñón son
-          mucho más difíciles.
-
-    \item \textbf{Estratificar todo análisis por órgano.} Lo demostró la paradoja de Simpson.
-
-    \item \textbf{Apoyarse en aumentación de color y tinción.} Es la única vía para simular la
-          variabilidad entre fuentes que el entrenamiento no contiene.
+    \item PNG/JPEG/TIFF de una sola imagen; máximo 64 MiB y 9 millones de píxeles.
+    \item Preprocesamiento compartido a 384 px; si falta espaciado,
+          asumir explícitamente $0.4\,\mu$m/píxel, no inferirlo.
+    \item Inferencia CPU, uno o todos los modelos disponibles, secuencialmente.
+    \item Máscara binaria restaurada al tamaño original, superposición cian,
+          porcentaje FTU y tiempo de forward CPU.
   \end{enumerate}
+  \begin{alertblock}{Estado local y alcance}
+    Sin los tres archivos \texttt{.pt}, no hay nueva predicción real demostrada.
+    Pruebas sintéticas no sustituyen aceptación con pesos reales.
+    Sin máscara de referencia no se muestra Dice/IoU de la carga nueva.
+  \end{alertblock}
 \end{frame}
 
-\begin{frame}[standout]
-  Gracias
+\begin{frame}{Límites y pendientes de entrega}
+  \begin{itemize}
+    \item Muestra pequeña: 53 imágenes de prueba, solo 7 de pulmón;
+          una ejecución por modelo y sin incertidumbre cuantificada.
+    \item Datos HPA y split por imagen: no validar transferencia de dominio
+          a HuBMAP, independencia por donante ni uso clínico.
+    \item Resolución 384: compromete detalle fino; no se estudiaron otras resoluciones.
+    \item Faltan localmente \texttt{train.csv}, caché y checkpoints;
+          recuperación y demostración con pesos reales pendientes.
+    \item Informe final, capturas reales y enlace humano del Drive:
+          entregables pendientes por confirmar, fuera de esta actualización.
+  \end{itemize}
+  \alert{Prototipo de investigación: no usar para diagnóstico ni decisiones médicas.}
+\end{frame}
 
-  \vspace{1em}
-  \small\normalfont
-  \texttt{github.com/AleWWH1104/proyecto2-data}
+\begin{frame}{Conclusiones y acciones de entrega}
+  \begin{enumerate}
+    \item \textbf{Comparación cumplida:} tres modelos, mismo split y perfil;
+          SegFormer es la referencia con Dice 0.629 e IoU 0.510 registrados.
+    \item \textbf{El promedio no basta:} presentar siempre el desglose por órgano;
+          el Dice 0.103 en pulmón limita el alcance del resultado.
+    \item \textbf{Aplicación funcional, aceptación real pendiente:}
+          demostrar exploración y resultados ahora, sin simular una predicción.
+    \item \textbf{Antes de entregar:} recuperar activos autorizados,
+          comprobar una carga nueva con pesos reales y completar informe/Drive.
+  \end{enumerate}
+  \small Reproducción de la demo y checklist: \texttt{README.md}.
+  Conservar métricas/splits; no reentrenar ni reevaluar para preparar la presentación.
+\end{frame}
+
+\begin{frame}{Referencias: contexto y arquitecturas}
+  \scriptsize
+  \begin{thebibliography}{9}
+    \bibitem{jain} Jain, Y. et al. (2023).
+      Segmenting functional tissue units across human organs using community-driven
+      development of generalizable machine learning algorithms.
+      \textit{Nature Communications, 14}, 4656.
+      \href{https://doi.org/10.1038/s41467-023-40291-0}{doi:10.1038/s41467-023-40291-0}.
+    \bibitem{unet} Ronneberger, O., Fischer, P. y Brox, T. (2015).
+      U-Net: Convolutional networks for biomedical image segmentation.
+      \textit{MICCAI 2015}, 234--241.
+      \href{https://doi.org/10.1007/978-3-319-24574-4_28}{doi:10.1007/978-3-319-24574-4\_28}.
+    \bibitem{unetpp} Zhou, Z., Siddiquee, M. M. R., Tajbakhsh, N. y Liang, J. (2020).
+      UNet++: Redesigning skip connections to exploit multiscale features in image segmentation.
+      \textit{IEEE Transactions on Medical Imaging, 39}(6), 1856--1867.
+      \href{https://doi.org/10.1109/TMI.2019.2959609}{doi:10.1109/TMI.2019.2959609}.
+  \end{thebibliography}
+\end{frame}
+
+\begin{frame}{Referencias: transformer y preprocesamiento}
+  \scriptsize
+  \begin{thebibliography}{9}
+    \bibitem[4]{segformer} Xie, E., Wang, W., Yu, Z., Anandkumar, A., Alvarez, J. M. y Luo, P. (2021).
+      SegFormer: Simple and efficient design for semantic segmentation with transformers.
+      \textit{Advances in Neural Information Processing Systems, 34}, 12077--12090.
+      \href{https://proceedings.neurips.cc/paper/2021/hash/64f1f27bf1b4ec22924fd0acb550c235-Abstract.html}{Artículo en NeurIPS}.
+    \bibitem[5]{tellez} Tellez, D. et al. (2019).
+      Quantifying the effects of data augmentation and stain color normalization in
+      convolutional neural networks for computational pathology.
+      \textit{Medical Image Analysis, 58}, 101544.
+      \href{https://doi.org/10.1016/j.media.2019.101544}{doi:10.1016/j.media.2019.101544}.
+  \end{thebibliography}
+  \small Fuentes reutilizadas de \texttt{informe/referencias.bib}.
+  Esta presentación no acredita una auditoría de formato APA o de indexación.
 \end{frame}
 
 \end{document}

@@ -1,211 +1,140 @@
-# Proyecto 2 – Data Science
+# Proyecto 2 – Data Science: resultados y demo
 
-**Reto 18: Hackeando el cuerpo humano**. [HuBMAP - Hacking the Human Body](https://www.kaggle.com/competitions/hubmap-organ-segmentation) (Visión Artificial: segmentación de unidades funcionales de tejido, FTU, en imágenes histológicas de riñón, próstata, intestino grueso, bazo y pulmón).
+**Reto 18: Hackeando el cuerpo humano.** Segmentación binaria de unidades
+funcionales de tejido (FTU), no clasificación de órganos. Datos de
+[HuBMAP – Hacking the Human Body](https://www.kaggle.com/competitions/hubmap-organ-segmentation);
+no participamos en la competencia ni enviamos predicciones. Prototipo de
+investigación, **no apto para diagnóstico ni decisiones médicas**.
 
-Usamos los datos de la competencia de Kaggle, pero no participamos en ella: no se suben predicciones. Todo se corre en local.
+SegFormer / MIT-B0 es la referencia de esta ejecución: Dice medio **0.629** e
+IoU **0.510** sobre 53 imágenes. La aplicación explora metadatos y resultados
+existentes; la predicción de imágenes nuevas está implementada, pero **los pesos
+no están disponibles en este checkout y la aceptación real sigue pendiente**.
 
-## Estructura
+## Inicio rápido: aplicación local
 
-```
-proyecto2-reto18.ipynb       Fase 1: análisis exploratorio (entregado)
-proyecto2-resultados.ipynb   Fase 2: preprocesamiento, modelos y evaluación
-src/preprocess.py            Pipeline de datos compartido (notebook y, después, la app)
-src/models.py                Fábricas de los 3 modelos
-src/training.py              Loop de entrenamiento, pérdida y preflight de memoria
-src/evaluation.py            Métricas de prueba (Dice, IoU, tiempo)
-app/Inicio.py                Portada de la aplicación (Streamlit)
-app/comun.py                 Datos, modelos y colores compartidos por las páginas
-app/pages/                   Una página por persona
-scripts/windows_training.ps1 Arnés de entrenamiento (Verify / Preflight / Train)
-data/
-  train.csv                  Se descarga de Kaggle (no se sube al repo)
-  train_images/              Se descarga de Kaggle (no se sube al repo)
-  splits.csv                 División train/val/test (SÍ se sube: todos usan la misma)
-  cache_384/                 Imágenes y máscaras a 384 px (no se sube; va por Drive)
-  artefactos_entrenamiento/
-    checkpoints/*.pt         Los 3 modelos entrenados (no se suben; van por Drive)
-    historial_modelos.csv    Métricas por época (SÍ se sube)
-    experimentos_modelos.csv Configuración y mejor Dice por modelo (SÍ se sube)
-  metrics.csv                Dice, IoU y tiempo por imagen de prueba y modelo (SÍ se sube)
-docs/
-  division_avances_resultados.md     Qué hizo cada persona en la fase de resultados
-  division_aplicacion.md             Qué hace cada persona en la aplicación
-  ejecucion_entrenamiento_windows.md Cómo se ejecuta el entrenamiento
-informe/                     Informe en LaTeX, figuras y referencias.bib
-presentacion/                Presentación en Beamer
-```
-
-## Cómo correrlo
-
-### 1. Instalar dependencias
+Desde la raíz del repositorio, con `uv` y Python 3.11 o posterior:
 
 ```bash
 uv sync --frozen
-```
-
-Hay que correrlo **cada vez que hagas pull** y cambie `pyproject.toml`, porque en esta fase se agregaron librerías (`torch`, `albumentations`, `opencv`, `tifffile`, `scikit-learn`). Si falta alguna, el notebook falla en la primera celda.
-
-Para la aplicación local en **macOS con Apple Silicon**, use Python 3.11 o
-posterior (el Python 3.9 del sistema no cumple el requisito). `uv` selecciona
-Python compatible y el lock publicado incluye wheels arm64 para macOS 14 o
-posterior. Torch se instala desde PyPI, sin CUDA; la aplicación carga los
-checkpoints en CPU, aunque el equipo tenga MPS disponible.
-
-Compruebe la instalación sin abrir el notebook ni ejecutar entrenamiento:
-
-```bash
-uv run python -c "import torch, torchvision, streamlit, plotly; print(torch.__version__); print('MPS available:', torch.backends.mps.is_available())"
-uv run python -m unittest discover -s tests -p 'test_platform_dependencies.py' -v
-```
-
-En **Windows**, Torch conserva la versión CUDA `2.14.1+cu130` y el índice
-`https://download.pytorch.org/whl/cu130`. `torchvision` conserva `0.29.1` desde
-PyPI, que ya era su origen efectivo en el lock anterior. No se cambian el perfil
-conservador, los gates ni los comandos del
-[arnés Windows](docs/ejecucion_entrenamiento_windows.md). Una instalación en Mac
-no valida CUDA ni autoriza entrenamiento; un cambio de dependencias invalida
-la evidencia previa del arnés y exige repetir Verify en Windows antes de avanzar.
-
-Instalar dependencias no recupera `train.csv`, la caché ni los checkpoints.
-Su ausencia debe mostrarse como pendiente; no genere pesos nuevos para ocultarla.
-
-### 2. Descargar los datos
-
-> **Si vas a trabajar en la aplicación, sáltate este paso**: no necesitas los 5.8 GB. Ve directo a [Qué sigue: la aplicación](#qué-sigue-la-aplicación).
-
-En la [página de datos de la competencia](https://www.kaggle.com/competitions/hubmap-organ-segmentation/data) (hay que aceptar las reglas con el botón "Join Competition"; esto solo habilita la descarga) baja:
-
-- `train.csv` → `data/train.csv`
-- la carpeta **`train_images/` completa** (351 imágenes `.tiff`, ~5.8 GB) → `data/train_images/`
-
-Debe quedar así:
-
-```
-data/
-  train.csv
-  splits.csv
-  train_images/
-    10044.tiff
-    10274.tiff
-    ...           (351 archivos)
-```
-
-El notebook del análisis exploratorio solo necesita `train.csv`.
-
-**Los `.tiff` solo se necesitan para generar la caché.** La sección 2.2 crea una vez `data/cache_384/` (702 `.png`: 351 imágenes y 351 máscaras ya redimensionadas) y a partir de ahí todo —entrenamiento, evaluación y la app— lee de ahí. Quien reciba `data/cache_384/` por Drive puede trabajar **sin descargar los 5.8 GB**.
-
-### 3. Abrir el notebook
-
-```bash
-uv run jupyter notebook proyecto2-resultados.ipynb
-```
-
-Corre todas las celdas desde el inicio (Run All). La primera celda imprime dos banderas:
-
-- `TIFF originales: True` → se puede generar la caché.
-- `caché de 384 px: True` → la sección 2 completa y la sección 4 funcionan, haya `.tiff` o no.
-
-Si ambas son `False`, falta descargar `train_images/` o pedir `data/cache_384/`. Generar la caché tarda unos minutos y solo se hace una vez.
-
-**La sección 3 no se ejecuta desde el notebook.** Sus banderas quedan en `False` a propósito; el entrenamiento va por el arnés de PowerShell (ver más abajo).
-
-### 4. Correr la aplicación
-
-Necesita los archivos del Drive en `data/` (ver [Qué sigue: la aplicación](#qué-sigue-la-aplicación)). No necesita GPU.
-
-```bash
 uv run streamlit run app/Inicio.py
 ```
 
-Se abre en el navegador en `http://localhost:8501`; si no se abre sola, copia esa dirección. La portada muestra el Dice de los 3 modelos y avisa en amarillo si falta algún archivo del Drive. Se cierra con `Ctrl + C` en la terminal. Si la primera vez pide un correo, déjalo vacío y presiona Enter.
+Abra `http://localhost:8501` (o la dirección que indique Streamlit); cierre con
+`Ctrl + C`. No necesita GPU para la aplicación. Repita la sincronización si cambia
+el lock o las dependencias. Instalar paquetes no recupera datos ni checkpoints.
 
-Cada página nueva va en `app/pages/` (por ejemplo `app/pages/2_Prediccion.py`) y aparece sola en el menú de la izquierda. Para usar los datos y los modelos:
+- **macOS Apple Silicon:** el lock incluye wheels arm64 para macOS 14 o posterior;
+  Torch usa PyPI y los modelos se cargan en CPU, aunque MPS esté disponible.
+  El Python 3.9 del sistema no cumple el requisito.
+- **Windows:** se conserva Torch `2.14.1+cu130` desde el índice CUDA cu130 y
+  torchvision `0.29.1` desde PyPI. Instalar la app no valida CUDA ni autoriza
+  entrenamiento. Consulte el [contrato Windows](docs/ejecucion_entrenamiento_windows.md).
 
-```python
-from comun import cargar_datos, cargar_modelo, COLORES, NOMBRES_COMPLETOS
+## Demo sin pesos: lo que sí se puede mostrar
 
-datos = cargar_datos()            # train, splits, metricas, historial, experimentos
-modelo = cargar_modelo("segformer_mit_b0")
+1. **Inicio:** resumen de modelos y avisos de activos faltantes.
+2. **Exploración:** distribución de órganos/splits y filtros. Sin `train.csv`,
+   no se muestran edad, fuente, dimensiones ni cobertura como si estuvieran disponibles.
+3. **Rendimiento:** seleccione un modelo o todos, órganos y Dice/IoU; muestre
+   comparación, distribución, tiempos y curvas. Desactive **Mostrar rendimiento**
+   y vuelva a Inicio: resumen y resultados permanecen ocultos hasta reactivarlo.
+4. **Predicción:** muestre el aviso de bloqueo por checkpoints ausentes.
+   No simule una predicción ni presente pruebas sintéticas como demo con pesos reales.
+
+Con pesos recuperados de origen confiable, Predicción acepta PNG/JPEG/TIFF de una
+sola imagen (hasta 64 MiB y 9 millones de píxeles), preprocesa a 384 px y permite
+uno/todos los modelos disponibles. Devuelve máscara FTU, superposición cian,
+porcentaje FTU y tiempo CPU; no Dice/IoU sin anotación de referencia. El órgano
+seleccionado es descriptivo. Si no se conoce el espaciado, se asume explícitamente
+0.4 µm/píxel. La recuperación y comprobación real de este flujo son pendientes.
+
+## Activos y resultados reproducibles
+
+| Ruta | Uso y estado local |
+| --- | --- |
+| `data/splits.csv` | Versionado: 351 IDs, split 245/53/53, estratificado por órgano, semilla 42 |
+| `data/metrics.csv` | Versionado: 159 filas, tres modelos sobre las mismas 53 imágenes |
+| `data/artefactos_entrenamiento/historial_modelos.csv` | Curvas de entrenamiento/validación existentes |
+| `data/artefactos_entrenamiento/experimentos_modelos.csv` | Perfil, mejor época y estado existentes |
+| `data/train.csv` | Metadatos completos/RLE; ausente localmente, para EDA enriquecido |
+| `data/cache_384/` | Caché de 351 imágenes y 351 máscaras; ausente, no necesaria para la demo de CSV ni una carga nueva |
+| `data/artefactos_entrenamiento/checkpoints/` | Pesos ausentes: `unet_resnet34.pt`, `unetplusplus_resnet34.pt`, `segformer_mit_b0.pt` |
+
+Pesos, caché, TIFF y `train.csv` están excluidos de Git: no forzar su inclusión.
+Coordine la entrega de activos existentes por un canal autorizado; no hay enlace
+Drive confirmado en este README. Descarga original de metadatos:
+[datos de Kaggle](https://www.kaggle.com/competitions/hubmap-organ-segmentation/data),
+sujeta a las reglas de acceso de la competencia. No hace falta descargar los TIFF
+para mostrar los resultados guardados ni para inferir una carga nueva con pesos.
+
+| Modelo | Dice prueba | IoU prueba | Forward registrado (ms) | Mejor val Dice | Épocas / mejor época |
+| --- | --- | --- | --- | --- | --- |
+| U-Net / ResNet34 | 0.506 | 0.400 | 11.8 | 0.6058 | 13 / 8 |
+| U-Net++ / ResNet34 | 0.481 | 0.355 | 31.9 | 0.5256 | 6 / 1 |
+| SegFormer / MIT-B0 | **0.629** | **0.510** | 11.6 | **0.6596** | 10 / 5 |
+
+Medias por imagen de los CSV existentes, no métricas globales de píxeles. Tiempos
+del forward en **NVIDIA GeForce RTX 4060 Laptop GPU**, batch 1, sin carga ni
+preprocesamiento: **no son un benchmark de este Mac**. Los tres modelos terminaron
+por detención temprana. No hay réplicas ni intervalos de confianza; el resultado
+de U-Net++ no demuestra su techo ni una causa específica de detención.
+
+El perfil conservador usa 384 × 384 px, batch físico 1, acumulación de gradientes 2, AMP CUDA,
+AdamW (LR 1e-4, weight decay 1e-2), Dice + BCE, máximo 20 épocas y paciencia 5.
+Checkpoint por validación, umbral fijo ≥ 0.5; no ajustar usando prueba.
+Split por imagen no prueba independencia por donante ni transferencia HPA/HuBMAP.
+Los artefactos conservan `checkpoints/<modelo>.pt`,
+`historial_modelos.csv` (`modelo, epoca, train_loss, train_dice, val_loss, val_dice`)
+y `experimentos_modelos.csv` (configuración, épocas, mejor época/Dice, checkpoint y estado).
+El contrato de referencia del notebook es **2.7 Entrega para la Persona 2**;
+no se ejecuta para preparar esta entrega.
+
+## Comprobaciones funcionales y presentación
+
+Suite sintética/offline (no evaluación de imágenes reales ni entrenamiento):
+
+```bash
+HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 ALBUMENTATIONS_NO_VERSION_CHECK=1 UV_OFFLINE=1 UV_FROZEN=1 uv run python -m unittest discover -s tests -v
+git diff --check
 ```
 
-## Fase 2: Resultados (trabajo en cadena)
+La sintaxis de variables es para una shell POSIX. Los contratos Windows son
+sintéticos; no equivalen a Verify/Preflight en Windows nativo. TDD no está
+configurado; estos son controles funcionales, no una afirmación de TDD.
 
-La división completa está en [`docs/division_avances_resultados.md`](docs/division_avances_resultados.md). Cada persona trabaja en su sección del mismo notebook, una después de la otra.
+Presentación: `presentacion/presentacion.tex` y `presentacion/presentacion.pdf`.
+**Estado de este checkout:** PDF de resultados actualizado (20 páginas), compilado
+con pdfLaTeX sin shell escape. Metropolis y `pgfopts` se instalaron exclusivamente
+en el árbol TeX del usuario desde el repositorio oficial CTAN; no se cambió el tema
+ni se instalaron herramientas de sistema. La aceptación con pesos reales sigue pendiente.
+Con pdfLaTeX y el tema Metropolis ya instalados, desde `presentacion/`, ejecute
+dos veces para resolver citas y numeración:
 
-| Orden | Persona | Sección del notebook | Estado |
-| --- | --- | --- | --- |
-| 1 | Persona 1 | 2. Pipeline de datos | Terminada |
-| 2 | Persona 2 | 3. Entrenamiento de los modelos | Terminada: los tres modelos entrenados y sus artefactos generados |
-| 3 | Persona 3 | 4. Evaluación, comparación y visualizaciones | Terminada |
+```bash
+pdflatex -no-shell-escape -interaction=nonstopmode -halt-on-error presentacion.tex
+pdflatex -no-shell-escape -interaction=nonstopmode -halt-on-error presentacion.tex
+```
 
-### Dónde se quedó (2026-10-02)
+Reutiliza tres figuras `informe/figuras/resultados_*.png` y fuentes de la
+bibliografía existente. **No regenere las figuras:** el script de figuras incluye
+inferencia sobre prueba. Los notebooks son referencias; no ejecutar Run All para
+preparar la demo. El entrenamiento solo sigue el arnés Windows documentado,
+con gates y confirmación humana; no invocar directamente el runner Python.
 
-La sección 4 se está armando en cuatro partes, una por commit:
+## Checklist antes de entregar
 
-| # | Qué | Archivos | Estado |
-| --- | --- | --- | --- |
-| 1 | Módulo de métricas de prueba | `src/evaluation.py` | Hecho |
-| 2 | Correr los 3 modelos sobre `test` | `data/metrics.csv`, `.gitignore` | Hecho |
-| 3 | Las visualizaciones | `informe/figuras/`, `informe/figuras_resultados.py` | Hecho |
-| 4 | Escribir la sección 4 del notebook | `proyecto2-resultados.ipynb` | Hecho |
+- [ ] Abrir la app y recorrer las cuatro páginas; comprobar filtros y ocultamiento.
+- [ ] Recuperar los tres checkpoints confiables y `train.csv`; caché si se requiere.
+- [ ] Comprobar una imagen nueva autorizada con uno/todos los modelos disponibles;
+      no usar el split de prueba para iterar la demo. Capturar pantallas reales.
+- [ ] Revisar el PDF compilado: cifras, figuras, citas, legibilidad y sin desbordes.
+- [ ] Completar/verificar el informe final por separado y las capturas solicitadas;
+      esta actualización no modifica ni acredita el informe.
+- [ ] Confirmar el enlace humano de Drive y sus permisos; entregar PDF, código,
+      repositorio y presentación según [la guía](docs/instrucciones_entrega_final.md).
+- [ ] Auditar APA/indexación de las referencias cuando corresponda; no se certificó aquí.
 
-### Reglas para trabajar en el mismo notebook
-
-- Antes de empezar: `git pull` y `uv sync`.
-- **No cambies `data/splits.csv`**. Todos deben entrenar y evaluar con las mismas imágenes en cada conjunto.
-- Si necesitas cambiar algo del preprocesamiento, hazlo en `src/preprocess.py`, no copiando código al notebook, para que la app use exactamente lo mismo.
-- Al terminar tu parte: corre el notebook completo, guarda y haz commit con las salidas (gráficas incluidas).
-- No subas imágenes, la caché ni los pesos de los modelos (`.pt`); pesan demasiado para GitHub y se comparten por Google Drive. Los dos CSV del entrenamiento sí están versionados: pesan 11 KB juntos.
-- No tengas el notebook abierto en Jupyter mientras otra herramienta lo edita: Jupyter lo guarda solo y puede sobrescribir los cambios.
-
-### Persona 2: entrenamiento (terminado)
-
-Ejecutado el **2026-10-01** en una RTX 4060 Laptop de 8 GB con el arnés de PowerShell. Resultados reales:
-
-| Modelo | Épocas | Mejor época | Mejor val Dice | Estado |
-| --- | --- | --- | --- | --- |
-| SegFormer / MIT-B0 | 10 | 5 | **0.6596** | detención temprana |
-| U-Net / ResNet34 | 13 | 8 | 0.6058 | detención temprana |
-| U-Net++ / ResNet34 | 6 | 1 | 0.5256 | detención temprana |
-
-**El valor de U-Net++ subestima al modelo**: su mejor época fue la 1 y su `train_dice` seguía subiendo (0.37 → 0.67), así que lo cortó el ruido de validación (53 imágenes de validación y batch efectivo 2), no una falta de aprendizaje. Hay que decirlo en la discusión en lugar de presentar 0.5256 como su techo. Como referencia, los tres primeros lugares del reto llegaron a Dice ≈ 0.835, con resoluciones mayores, ensambles y pseudo-etiquetado.
-
-Perfil usado, elegido para que el flujo completo quepa en una GPU portátil de 6 a 8 GB:
-
-- resolución **384 × 384 px**;
-- batch físico **1 imagen** (lo que reside en la GPU en cada forward/backward);
-- acumulación de gradientes de **2 pasos** → batch efectivo de **2 imágenes**;
-- precisión mixta (AMP) con CUDA.
-
-Artefactos en `data/artefactos_entrenamiento/`:
-
-- `checkpoints/<modelo>.pt`: mejor checkpoint por Dice de validación, uno por modelo (no se versiona, va por Drive).
-- `historial_modelos.csv`: `modelo, epoca, train_loss, train_dice, val_loss, val_dice`. **Sí está en el repo.**
-- `experimentos_modelos.csv`: configuración, épocas ejecutadas, mejor época, mejor val Dice, checkpoint y estado. **Sí está en el repo.**
-
-**Para repetir el entrenamiento**, si alguna vez hace falta: el único camino autorizado es el arnés descrito en [`docs/ejecucion_entrenamiento_windows.md`](docs/ejecucion_entrenamiento_windows.md), con la secuencia de `comandos_windows.txt`. Exige CUDA en Windows nativo y valida datos, GPU y memoria antes de gastar tiempo. No se entrena desde el notebook ni se editan sus banderas; el contrato del pipeline está en la sección **2.7 Entrega para la Persona 2**.
-
-## Qué sigue: la aplicación
-
-La fase de resultados está terminada: la sección 4 del notebook tiene las métricas de test, las figuras y la discusión con el modelo seleccionado (**SegFormer / MIT-B0**). No hace falta volver a ejecutar el notebook.
-
-La división de la aplicación en tres partes está en [`docs/division_aplicacion.md`](docs/division_aplicacion.md). El esqueleto ya está en `app/` (cómo correrlo en [4. Correr la aplicación](#4-correr-la-aplicación)). Para empezar:
-
-1. `git pull` y `uv sync`.
-2. Bajar del Drive y copiar dentro de `data/`:
-
-| Del Drive | Va en | Tamaño |
-| --- | --- | --- |
-| `checkpoints/` (3 `.pt`) | `data/artefactos_entrenamiento/checkpoints/` | 208 MB |
-| `cache_384/` (702 `.png`) | `data/cache_384/` | 89 MB |
-| `train.csv` | `data/train.csv` (también se puede bajar de Kaggle) | 16 MB |
-
-Resultados en test (53 imágenes, RTX 4060 Laptop, batch 1):
-
-| Modelo | Dice | IoU | ms por imagen | val Dice |
-| --- | --- | --- | --- | --- |
-| **SegFormer / MIT-B0** | **0.629** | **0.510** | 11.6 | 0.660 |
-| U-Net / ResNet34 | 0.506 | 0.400 | 11.8 | 0.606 |
-| U-Net++ / ResNet34 | 0.481 | 0.355 | 31.9 | 0.526 |
-
-Las figuras del informe se regeneran con `uv run python -m informe.figuras_resultados`.
+Código: `app/` (cuatro páginas), `src/inference.py` (cargas nuevas),
+`src/preprocess.py`, `src/models.py`, `src/training.py`, `src/evaluation.py`.
+Historial de aceptación y límites: [tracking local](odd/tasks/final-delivery-completion.md).
