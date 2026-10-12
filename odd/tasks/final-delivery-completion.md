@@ -2,7 +2,7 @@
 
 ## Objective and boundaries
 
-Complete the local application, installation instructions, presentation, and recovery of existing assets required by `docs/instrucciones_entrega_final.md`, excluding the final report. This document is created before source changes; this work unit implements **FD1 only**.
+Complete the local application, installation instructions, presentation, and recovery of existing assets required by `docs/instrucciones_entrega_final.md`, excluding the final report. This document was created before FD1 source changes; the current delegated work unit implements **FD2 only**.
 
 - Scope source: the accepted user request and final-delivery instructions (application requirements and presentation deliverable).
 - Excluded: final report and `informe/`, new production training, test-split evaluation or iteration, notebook execution, changes to existing evaluation metrics, remote access until authentication and transfer scope are explicitly confirmed, push, PR, and merge.
@@ -24,7 +24,7 @@ Complete the local application, installation instructions, presentation, and rec
 ## Stable tasks
 
 - [x] **FD1 — Cross-platform install.** Fix platform dependency sources for the local Mac app, preserve Windows CUDA versions/source, regenerate a valid lock, add source-contract coverage and setup documentation. Required checks: frozen sync, Windows operator contract tests, full safe synthetic suite, and Torch/torchvision/Streamlit/Plotly imports.
-- [ ] **FD2 — New image inference.** Accept new images, preprocess transparently, select one/all trained models; test synthetically and clearly disclose missing checkpoints.
+- [x] **FD2 — New image inference (functional implementation).** Accept new images, preprocess transparently, select one/all available trained models; synthetic checks pass and missing checkpoints are disclosed. Actual-checkpoint acceptance remains blocked under FD5.
 - [ ] **FD3 — Exploration and interactive hideable results.** Explore cleaned variables, visualize existing algorithm metrics interactively, and allow hiding results without new test evaluation.
 - [ ] **FD4 — Update presentation.** Reuse existing results/figures, explain application and limitations, build presentation when tooling is available; exclude final report.
 - [ ] **FD5 — Recover checkpoints/cache and end-to-end acceptance.** Recover existing assets only after separately confirmed remote authentication/transfer scope, run local acceptance, and report missing assets honestly.
@@ -52,7 +52,7 @@ Complete the local application, installation instructions, presentation, and rec
 - Runtime boundary: package installation and imports; app behavior acceptance belongs to FD2/FD3/FD5.
 - Windows execution acceptance: pending native Windows machine; local contract tests cannot prove CUDA availability.
 - Rollback: restore `pyproject.toml`, `uv.lock`, and the README installation section to the initial base; remove `tests/test_platform_dependencies.py`. Preserve preexisting files and unrelated application/training behavior. Retain tracking history or revert its FD1 progress independently. Then resync the restored environment; the old lock remains unsuitable for Mac.
-- Commit identity: pending parent inspection and commit.
+- Commit identity: `b642692`, created by the parent after independent acceptance (39 passing synthetic tests, frozen source/lock checks and imports). Rollback remains the exact FD1 boundary above; do not revert unrelated work.
 - Full Engram mirror: observation `5681`, topic `odd/final-delivery-completion/tasks`, project `proyecto2-data`; initial file and full mirror were both read back before source edits. Final progress mirror updated/read back before handoff.
 - Local tooling side effect: CodeGraph initialized before structural exploration as required; `.codegraph/` is untracked local tooling, not a delivery artifact and must not be staged.
 - Pending: parent inspection/commit identity, unfiltered-suite acceptance decision, native Windows Verify/Preflight, FD2–FD5 and end-to-end app/presentation acceptance. Checkpoints/cache/train.csv recovery is not performed or claimed successful in FD1.
@@ -63,3 +63,26 @@ Complete the local application, installation instructions, presentation, and rec
 - User reports the Windows teammate is unavailable and asks us to handle necessary training. Existing metrics do not prove retraining necessary; no training was launched and current operational restrictions remain intact.
 - User separately authorized SSH-agent authentication to `jonialen@192.168.0.30` for read-only system/GPU/project-file inspection only. Transfers, installs, modifications and training are not authorized by that inspection choice.
 - Remote evidence: Ubuntu 26.04.1 LTS, GTX 1650 with 4096 MiB total VRAM, 6.8G disk available. No project/checkpoints found in bounded home locations; absence elsewhere is unknown. No usable timing logs found. This host does not satisfy the current Windows-native GPU contract.
+
+## FD2 execution boundary
+
+- FD2 implementation is authorized locally only; no commit until parent verification. RDD remains off, ordinary functional unittest checks only.
+- Functional inference acceptance uses synthetic uploads and mocked models/checkpoints. Real-checkpoint acceptance remains blocked on FD5 assets and must not be inferred from passing mocks.
+
+## FD2 evidence and rollback
+
+- Status: functional implementation complete, actual-weight acceptance blocked. No `checkpoints/` exists in the observed `data/artefactos_entrenamiento/` directory (only the two existing CSV files). No assets were transferred, no production or test images were opened, and no real-model timing or accuracy is claimed.
+- Changes: `src/inference.py`, `app/pages/2_Prediccion.py`, `tests/test_inference.py`; no adjustment to `app/comun.py` was necessary. Source/test additions total 503 lines; the advisory 400-line task budget was exceeded to keep decoding, inference, UI, and functional checks cohesive, without minification or artificial splitting.
+- Preprocessing evidence: `src/data.py` does not exist; the actual pipeline is `src/preprocess.py`. Reproduce its cache RGB uint8 conversion and area/linear resize, then the same validation transform at 384 px and ImageNet mean/std, contiguous float32 NCHW. Synthetic cache PNG round-trip proves exact tensor equality. Unknown upload spacing is explicitly assumed to be the training reference 0.4 µm/pixel, not guessed from metadata.
+- Output evidence: one binary FTU channel, not an organ classifier. User-selected organ is descriptive metadata. SegFormer logits are aligned to 384 using the evaluated bilinear/align_corners=False path, then sigmoid and fixed inclusive threshold ≥ 0.5. Restore the binary mask with nearest-neighbor interpolation to original dimensions; cyan overlay, FTU area percentage and CPU forward time, with no Dice/IoU/accuracy claim on uploads.
+- Safety: single-image PNG/JPEG/TIFF only, ≤64 MiB, ≤9 million pixels, sides 2–8192; reject invalid/multipage/unsupported images before expensive decoding where metadata allows. Grayscale and uint16 min/max scaling match the existing conversion (constant uint16 becomes zero); preserve RGB uint16 TIFF, reject RGB uint16 PNG rather than silently truncate. Drop alpha consistently. CPU eval/inference_mode, no pretrained downloads; reuse weights_only=True and strict checkpoint state loading. Repository-managed weights only, no checkpoint upload. All-model execution is sequential; a failed model has an explicit error and cannot fabricate a result.
+- Required observed commands (all exit 0, after normalization):
+  - `HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 ALBUMENTATIONS_NO_VERSION_CHECK=1 UV_OFFLINE=1 UV_FROZEN=1 uv run python -m unittest discover -s tests -p 'test_inference.py' -v`: 12 tests passed.
+  - `HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 ALBUMENTATIONS_NO_VERSION_CHECK=1 UV_OFFLINE=1 UV_FROZEN=1 uv run python -m unittest discover -s tests -v`: all 51 tests passed (39 existing + 12 FD2). Disabled notebook contract definitions run only under the independently approved fail-fast mock contract; no production notebook execution or training occurred.
+  - `HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 ALBUMENTATIONS_NO_VERSION_CHECK=1 UV_OFFLINE=1 UV_FROZEN=1 uv run python -c "from streamlit.testing.v1 import AppTest; app = AppTest.from_file('app/pages/2_Prediccion.py', default_timeout=30).run(); assert not app.exception; assert any('bloqueada' in x.value for x in app.warning); assert not app.metric; print('Actual missing-checkpoint AppTest: PASS')"`: actual local missing-checkpoint smoke PASS, no app exceptions or invented metrics.
+  - `git diff --check` and `git diff --no-index --check /dev/null <path>` for each of the three new files: passed.
+- Runtime harness: four Streamlit AppTest scenarios cover missing weights, available weights/no upload, invalid upload/partial model failure, and successful one/all-model displays. Uploads and success weights/models are deterministic synthetic mocks, not actual-checkpoint acceptance. Bare-mode Streamlit context/cache warnings are expected; no test failures observed.
+- Acceptance limits: FD5 still needs all three actual checkpoints and real local new-upload acceptance. No Windows Verify/Preflight, remote access, dataset test evaluation/iteration, configuration/metric changes, report edits, commit, push, or PR in FD2. FD3–FD5 remain pending. Earlier FD1 pending identity/full-suite bullets are historical; independent verification and `b642692` above resolve those two items only.
+- Rollback: remove the three new FD2 files above and revert only the FD2 checkbox/evidence and current-unit wording in this tracking file. Preserve FD1 commit evidence, its dependency changes, existing metrics, report, training contract, `.atl/`, `.codegraph/`, and preexisting final-delivery instructions. No shared app loader changes to undo.
+- Commit identity: uncommitted, awaiting parent verification and local commit to main. Full tracking mirror remains observation `5681`, topic `odd/final-delivery-completion/tasks`, project `proyecto2-data`; resynchronized and read back after checks.
+- Skill resolution: read the supplied work-unit-commits, cognitive-doc-design and windows-training-operator skill files plus the Windows execution guide. Direct-main authorization overrides branching, but parent-only commit timing is preserved; RDD stays off and TDD stays unconfigured/off. Context7 Pillow and Streamlit primary documentation informed lazy decode bounds and AppTest APIs; no upgrades.
