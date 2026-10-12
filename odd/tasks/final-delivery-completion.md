@@ -30,7 +30,7 @@ Complete the local application, installation instructions, presentation, and now
 - [x] **FD4 — Presentation accepted and committed `b31ec11`.** Final 20-page PDF, source and README verified; user-scoped Metropolis/pgfopts resolved the build blocker. FD5 remains deferred.
 - [ ] **FD5 — USER-DEFERRED: recover checkpoints/cache and end-to-end acceptance.** No recovery, retraining or timing-estimate work during delivery; actual trained-weight inference remains unavailable. Add trusted assets later only with separate authorization.
 - [x] **FD6 — Report source, bounded bibliography corrections and genuine app state locally verified.** Sixteen result/split/history rows match existing CSVs; four authentic screenshots added, absent weights/metadata explicit. All 18 citation keys retained; primary-evidence metadata corrections applied. Accepted and committed `a4c733d`; APA verified.
-- [x] **FD7 — Final report independently verified.** Authorized SSH compilation, 31 pages, 18 APA references and 12 figures inspected. Independent verification and parent full-suite spot check passed all 63 tests; published PDF and source ZIP hashes confirmed.
+- [x] **FD7 — Final report accepted `8befc9d`.** Authorized SSH compilation, 31 pages, 18 APA references and 12 figures inspected. Independent verification and parent full-suite spot check passed all 63 tests; published PDF and source ZIP hashes confirmed.
 - [x] **FD8 — Manifiesto local completo.** README/estado documentan PDF verificado, hashes, autorización y límites; Drive/permisos/entrega humana externa pendientes, sin enlaces inventados.
 
 ## FD1 evidence and rollback
