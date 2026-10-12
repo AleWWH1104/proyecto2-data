@@ -2,11 +2,11 @@
 
 ## Objective and boundaries
 
-Complete the local application, installation instructions, presentation, and now-authorized final report required by `docs/instrucciones_entrega_final.md`, delivering honestly without trained weights. Current delegated work: **FD9**; the parent independently verifies and handles FD10 publication.
+Complete the local application, installation instructions, presentation, and now-authorized final report required by `docs/instrucciones_entrega_final.md`, delivering honestly without trained weights. FD9 preparation and FD10 GitHub publication are complete; FD5 trained-weight acceptance remains deferred.
 
 - Scope source: the accepted user request and final-delivery instructions (application requirements and presentation deliverable).
 - Scope update (2026-10-11): the user's latest authorization includes report corrections, authentic local application screenshots and compiled PDF delivery. The initial exclusion of the report and `informe/` was the previous scope, preserved in historical evidence below, not a current restriction.
-- Excluded: new production training, test-split evaluation or iteration, notebook execution, changes to existing evaluation metrics, remote/credential work outside the single explicitly authorized PDF build below, stage/commit in this delegated unit, push, PR, and merge. Weight/cache recovery and real-weight acceptance are user-deferred, not complete.
+- Excluded: new production training, test-split evaluation or iteration, notebook execution, changes to existing evaluation metrics, remote/credential work except the explicitly authorized PDF build and normal GitHub main publication, stage/commit/push by delegates, PR, and merge. Weight/cache recovery and real-weight acceptance are user-deferred, not complete.
 - Preserve existing untracked `.atl/` and `docs/instrucciones_entrega_final.md`; do not stage them.
 - Initial base: `4f198d0b70ce9d620a5b1078c573c78dab8986dd`; branch: `main`.
 
@@ -33,7 +33,7 @@ Complete the local application, installation instructions, presentation, and now
 - [x] **FD7 — Final report accepted `8befc9d`.** Authorized SSH compilation, 31 pages, 18 APA references and 12 figures inspected. Independent verification and parent full-suite spot check passed all 63 tests; published PDF and source ZIP hashes confirmed.
 - [x] **FD8 — Manifiesto local completo.** README/estado documentan PDF verificado, hashes, autorización y límites; Drive/permisos/entrega humana externa pendientes, sin enlaces inventados.
 - [x] **FD9 — Presentation and Markdown script accepted `1e40f6e`.** Existing LaTeX/PDF refreshed in two status slides; 20-page script in `presentacion/guion_presentacion.md`, proposed roles/12-minute rehearsal and honest demo. Writer checks and parent structural readback/full 63-test spot check passed. RDD off; native risk medium; no remote work or training.
-- [ ] **FD10 — Publicación pendiente por el padre.** Verificación y consentimiento de destino/operación/credencial requeridos; delegado sin stage/commit/push/fetch/auth. FD5 diferido; Drive/entrega humana pendientes.
+- [x] **FD10 — GitHub publication verified.** Explicit agent-SSH consent for `git@github.com:AleWWH1104/proyecto2-data.git`, normal main push `d4a07ff..0cb3783` succeeded; remote/main/HEAD matched `0cb3783`. No force, tags, private-key inspection or session reuse. This closing ledger is included in a subsequent normal push; FD5 and human Drive delivery remain deferred.
 
 ## FD9 — Evidencia local (aceptada `1e40f6e`)
 
