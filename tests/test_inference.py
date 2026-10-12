@@ -172,9 +172,9 @@ class InferenceTest(unittest.TestCase):
                 inf.load_model("unet_resnet34", path)
 
 
-class PredictionPageTest(unittest.TestCase):
+class ArchivedPredictionPageTest(unittest.TestCase):
     def app(self):
-        return AppTest.from_file(str(ROOT / "app/pages/2_Prediccion.py"), default_timeout=30)
+        return AppTest.from_file(str(ROOT / "app/archived_prediction.py"), default_timeout=30)
 
     def test_missing_checkpoints_no_fake_prediction(self):
         with patch.object(inf, "available_checkpoints", return_value={}):

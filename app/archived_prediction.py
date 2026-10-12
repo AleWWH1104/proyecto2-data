@@ -1,11 +1,11 @@
-"""Prediction on newly uploaded images only."""
+"""Archived prediction interface, excluded from Streamlit page discovery."""
 
 import sys
 from pathlib import Path
 
 import streamlit as st
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from comun import CHECKPOINTS, MODELO_SELECCIONADO, NOMBRES_COMPLETOS
 from src.inference import (
     InferenceError, available_checkpoints, decode_upload, load_model, predict,

@@ -268,13 +268,11 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Demostración honesta: cuatro páginas implementadas}
+\begin{frame}{Demo: exploración y comparación de resultados}
   \begin{description}
-    \item[Inicio] Resumen registrado, modelo de referencia y alertas de activos faltantes.
-    \item[Exploración] Filtros y gráficos de metadatos; sin \texttt{train.csv},
-      solo información disponible en \texttt{splits.csv}.
-    \item[Predicción] Ingreso de imagen y selección de uno/todos los modelos
-      disponibles; actualmente bloqueada por falta de checkpoints.
+    \item[Inicio] Resumen de los tres modelos y sus métricas registradas.
+    \item[Exploración] Los 351 metadatos de \texttt{train.csv}: órgano, edad,
+      sexo, fuente, dimensiones y cobertura FTU, con filtros interactivos.
     \item[Rendimiento] Dice/IoU, distribuciones, órganos, tiempos y curvas
       interactivas a partir de CSV, sin reevaluar imágenes.
   \end{description}
@@ -284,20 +282,17 @@
   \end{block}
 \end{frame}
 
-\begin{frame}{Nueva imagen: flujo disponible al recuperar los pesos}
+\begin{frame}{Flujo de la demo: metadatos y métricas registradas}
   \begin{enumerate}
-    \item PNG/JPEG/TIFF de una sola imagen; máximo 64 MiB y 9 millones de píxeles.
-    \item Preprocesamiento compartido a 384 px; si falta espaciado,
-          asumir explícitamente $0.4\,\mu$m/píxel, no inferirlo.
-    \item Inferencia CPU, uno o todos los modelos disponibles, secuencialmente.
-    \item Máscara binaria restaurada al tamaño original, superposición cian,
-          porcentaje FTU y tiempo de forward CPU.
+    \item Leer metadatos y la partición reproducible desde los CSV.
+    \item Filtrar órganos y variables descriptivas para explorar patrones.
+    \item Comparar Dice/IoU sobre las mismas imágenes y consultar las curvas registradas.
+    \item Mostrar u ocultar el rendimiento sin modificar los resultados guardados.
   \end{enumerate}
-  \begin{alertblock}{Estado local y alcance}
-    Sin los tres archivos \texttt{.pt}, no hay nueva predicción real demostrada.
-    Pruebas sintéticas no sustituyen aceptación con pesos reales.
-    Sin máscara de referencia no se muestra Dice/IoU de la carga nueva.
-  \end{alertblock}
+  \begin{block}{Alcance del dashboard}
+    La demo explora datos y resultados históricos. No ejecuta modelos ni presenta
+    segmentación de imágenes nuevas como una capacidad demostrada.
+  \end{block}
 \end{frame}
 
 \begin{frame}{Límites y pendientes de entrega}
@@ -307,8 +302,8 @@
     \item Datos HPA y split por imagen: no validar transferencia de dominio
           a HuBMAP, independencia por donante ni uso clínico.
     \item Resolución 384: compromete detalle fino; no se estudiaron otras resoluciones.
-    \item Faltan localmente \texttt{train.csv}, caché y checkpoints;
-          recuperación y demostración con pesos reales pendientes.
+    \item \texttt{train.csv} está disponible para la demo; la inferencia con
+          checkpoints y la caché de imágenes siguen fuera de esta entrega.
     \item Informe final y capturas reales completos; enlace de Drive,
           permisos y entrega humana externa pendientes de confirmar.
   \end{itemize}
@@ -321,8 +316,8 @@
           SegFormer es la referencia con Dice 0.629 e IoU 0.510 registrados.
     \item \textbf{El promedio no basta:} presentar siempre el desglose por órgano;
           el Dice 0.103 en pulmón limita el alcance del resultado.
-    \item \textbf{Aplicación funcional, aceptación real pendiente:}
-          demostrar exploración y resultados ahora, sin simular una predicción.
+    \item \textbf{Dashboard de resultados:}
+          explorar metadatos y comparar métricas, sin simular inferencia.
     \item \textbf{Entrega sin pesos:} informe final y capturas completos;
           confirmar Drive/permisos. Recuperación y aceptación real diferidas.
   \end{enumerate}

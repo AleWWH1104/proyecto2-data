@@ -14,7 +14,7 @@ st.info(
 data = cargar_datos()
 frame = data["train"]
 if frame.empty:
-    st.warning("train.csv no está disponible o es inválido. Se muestran únicamente los metadatos de splits.csv.")
+    st.info("train.csv no está disponible o es inválido. Se muestran únicamente los metadatos de splits.csv.")
     frame = data["splits"]
     st.caption("Este CSV describe las particiones; no contiene edad, fuente, dimensiones ni cobertura FTU.")
 else:

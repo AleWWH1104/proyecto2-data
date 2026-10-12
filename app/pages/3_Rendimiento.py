@@ -15,7 +15,7 @@ data = cargar_datos()
 st.caption("Solo CSV existentes: no se ejecutan modelos ni se reevalúa el conjunto de prueba.")
 for issue in data["issues"]:
     if not issue.startswith(("train.csv:", "splits.csv:")):
-        st.warning(issue)
+        st.info(issue)
 choice = st.sidebar.selectbox("Modelo", ["all", *NOMBRES_COMPLETOS],
                               format_func=lambda value: "Todos" if value == "all" else NOMBRES_COMPLETOS[value])
 models = list(NOMBRES_COMPLETOS) if choice == "all" else [choice]
@@ -29,7 +29,7 @@ metric = st.selectbox("Métrica", ["dice", "iou"], format_func=str.upper)
 st.caption("Dice e IoU: [0, 1], mayor es mejor. Medias por imagen, no métricas globales de píxeles.")
 st.caption("No hay intervalos de confianza ni réplicas: la dispersión no mide incertidumbre estadística.")
 if excluded:
-    st.warning(f"{excluded} filas sin pareja excluidas: se compara la intersección de imágenes y órganos.")
+    st.caption(f"{excluded} filas sin pareja excluidas: se compara la intersección de imágenes y órganos.")
 if paired.empty:
     st.info("No hay métricas comunes para los modelos y órganos seleccionados.")
 else:

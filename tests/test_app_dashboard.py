@@ -29,15 +29,23 @@ class DashboardTest(unittest.TestCase):
                  ROOT / "data/artefactos_entrenamiento/experimentos_modelos.csv"]
         before = [hashlib.sha256(path.read_bytes()).hexdigest() for path in paths]
         data = comun.cargar_datos()
-        self.assertTrue(data["train"].empty)
+        if not data["train"].empty:
+            self.assertEqual(set(data["train"]["id"]), set(data["splits"]["id"]))
+            self.assertEqual(len(data["train"]), 351)
         self.assertEqual(len(data["splits"]), 351)
         self.assertEqual(len(data["metricas"]), 159)
-        for page in ["Inicio.py", "pages/1_Exploracion.py", "pages/2_Prediccion.py", "pages/3_Rendimiento.py"]:
+        for page in ["Inicio.py", "pages/1_Exploracion.py", "pages/3_Rendimiento.py"]:
             app = self.app(page).run()
             self.assert_clean(app)
+            self.assertEqual(len(app.warning), 0)
             if "Exploracion" in page:
-                self.assertTrue(any("train.csv" in item.value for item in app.warning))
                 self.assertEqual(app.metric[0].value, "351")
+                if data["train"].empty:
+                    self.assertTrue(any("train.csv" in item.value for item in app.info))
+                else:
+                    self.assertEqual(len(app.get("plotly_chart")), 7)
+        self.assertFalse((ROOT / "app/pages/2_Prediccion.py").exists())
+        self.assertEqual(len(list((ROOT / "app/pages").glob("*.py"))), 2)
         self.assertEqual(before, [hashlib.sha256(path.read_bytes()).hexdigest() for path in paths])
 
     def test_performance_single_all_metric_and_organ_filters(self):
@@ -211,17 +219,19 @@ class DashboardTest(unittest.TestCase):
                 self.assertGreaterEqual(coverage, 0.)
                 self.assertLessEqual(coverage, 1.)
 
-    def test_partial_metrics_warn_and_use_common_ids(self):
+    def test_partial_metrics_disclose_exclusions_and_use_common_ids(self):
         loaded = comun.cargar_datos()
         loaded["metricas"] = loaded["metricas"].iloc[1:]
         with patch.object(comun, "cargar_datos", return_value=loaded):
             app = self.app("pages/3_Rendimiento.py").run()
             self.assert_clean(app)
             self.assertEqual(app.metric[0].value, "52")
-            self.assertTrue(any("sin pareja" in item.value for item in app.warning))
+            self.assertEqual(len(app.warning), 0)
+            self.assertTrue(any("sin pareja" in item.value for item in app.caption))
             app = self.app("Inicio.py").run()
             self.assert_clean(app)
-            self.assertTrue(any("sin pareja" in item.value for item in app.warning))
+            self.assertEqual(len(app.warning), 0)
+            self.assertTrue(any("sin pareja" in item.value for item in app.caption))
 
     def test_optional_history_and_experiments_invalid(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -237,7 +247,9 @@ class DashboardTest(unittest.TestCase):
                 app = self.app("pages/3_Rendimiento.py").run()
                 self.assert_clean(app)
                 self.assertEqual(len(app.get("plotly_chart")), 4)
-                self.assertEqual(len(app.warning), 2)
+                self.assertEqual(len(app.warning), 0)
+                for filename in ("historial_modelos.csv", "experimentos_modelos.csv"):
+                    self.assertTrue(any(filename in item.value for item in app.info))
 
 
 if __name__ == "__main__":

@@ -8,7 +8,8 @@ investigación, **no apto para diagnóstico ni decisiones médicas**.
 
 SegFormer / MIT-B0 es la referencia de esta ejecución: Dice medio **0.629** e
 IoU **0.510** sobre 53 imágenes. La aplicación explora metadatos y resultados
-existentes; la predicción de imágenes nuevas está implementada, pero **los pesos
+existentes. La demo tiene tres páginas y no ofrece predicción de imágenes nuevas.
+El código de inferencia está conservado fuera de la navegación; **los pesos
 no están disponibles en este checkout y la aceptación real sigue pendiente**.
 
 ## Inicio rápido: aplicación local
@@ -33,21 +34,19 @@ el lock o las dependencias. Instalar paquetes no recupera datos ni checkpoints.
 
 ## Demo sin pesos: lo que sí se puede mostrar
 
-1. **Inicio:** resumen de modelos y avisos de activos faltantes.
-2. **Exploración:** distribución de órganos/splits y filtros. Sin `train.csv`,
-   no se muestran edad, fuente, dimensiones ni cobertura como si estuvieran disponibles.
+1. **Inicio:** resumen de los tres modelos y sus resultados registrados.
+2. **Exploración:** distribución de órganos/splits y filtros; con `train.csv`
+   aparecen edad, sexo, fuente, dimensiones y cobertura FTU. Los 351 metadatos
+   están disponibles en esta Mac; en una copia sin ese archivo se usan los splits.
 3. **Rendimiento:** seleccione un modelo o todos, órganos y Dice/IoU; muestre
    comparación, distribución, tiempos y curvas. Desactive **Mostrar rendimiento**
    y vuelva a Inicio: resumen y resultados permanecen ocultos hasta reactivarlo.
-4. **Predicción:** muestre el aviso de bloqueo por checkpoints ausentes.
-   No simule una predicción ni presente pruebas sintéticas como demo con pesos reales.
 
-Con pesos recuperados de origen confiable, Predicción acepta PNG/JPEG/TIFF de una
-sola imagen (hasta 64 MiB y 9 millones de píxeles), preprocesa a 384 px y permite
-uno/todos los modelos disponibles. Devuelve máscara FTU, superposición cian,
-porcentaje FTU y tiempo CPU; no Dice/IoU sin anotación de referencia. El órgano
-seleccionado es descriptivo. Si no se conoce el espaciado, se asume explícitamente
-0.4 µm/píxel. La recuperación y comprobación real de este flujo son pendientes.
+La pantalla de predicción se retiró del menú. `app/archived_prediction.py` y
+`src/inference.py` conservan la implementación para una recuperación futura;
+no son parte del dashboard presentado ni evidencia de inferencia aceptada.
+Los avisos no fatales usan información neutral; los datos inválidos siguen
+validándose y no se reemplazan por resultados inventados.
 
 ## Activos y resultados reproducibles
 
@@ -57,7 +56,7 @@ seleccionado es descriptivo. Si no se conoce el espaciado, se asume explícitame
 | `data/metrics.csv` | Versionado: 159 filas, tres modelos sobre las mismas 53 imágenes |
 | `data/artefactos_entrenamiento/historial_modelos.csv` | Curvas de entrenamiento/validación existentes |
 | `data/artefactos_entrenamiento/experimentos_modelos.csv` | Perfil, mejor época y estado existentes |
-| `data/train.csv` | Metadatos completos/RLE; ausente localmente, para EDA enriquecido |
+| `data/train.csv` | Metadatos completos/RLE; recuperado localmente, no versionado |
 | `data/cache_384/` | Caché de 351 imágenes y 351 máscaras; ausente, no necesaria para la demo de CSV ni una carga nueva |
 | `data/artefactos_entrenamiento/checkpoints/` | Pesos ausentes: `unet_resnet34.pt`, `unetplusplus_resnet34.pt`, `segformer_mit_b0.pt` |
 
@@ -126,9 +125,9 @@ con gates y confirmación humana; no invocar directamente el runner Python.
 
 ## Checklist antes de entregar
 
-- [x] Recorrer las cuatro páginas localmente; filtros y ocultamiento verificados con AppTest.
+- [x] Recorrer las tres páginas activas localmente; filtros y ocultamiento verificados con AppTest.
 - [x] Capturar pantallas auténticas de la demo sin pesos en `informe/figuras/app_*.png`.
-- [ ] **Diferido por el equipo:** recuperar los tres checkpoints confiables y `train.csv`;
+- [ ] **Diferido por el equipo:** recuperar los tres checkpoints confiables;
       caché si se requiere. Comprobar una imagen nueva autorizada con pesos reales después;
       no usar el split de prueba para iterar la demo.
 - [x] Revisar el PDF compilado: cifras, figuras, citas, legibilidad y sin desbordes.
@@ -150,6 +149,6 @@ Consulte el [estado de la entrega sin pesos](docs/estado_entrega_sin_pesos.md)
 antes de empaquetar o subir archivos. Informe y presentación tienen PDF actualizado;
 la verificación independiente pasó; la entrega externa humana sigue pendiente.
 
-Código: `app/` (cuatro páginas), `src/inference.py` (cargas nuevas),
+Código: `app/` (tres páginas activas), `src/inference.py` (inferencia conservada),
 `src/preprocess.py`, `src/models.py`, `src/training.py`, `src/evaluation.py`.
 Historial de aceptación y límites: [tracking local](odd/tasks/final-delivery-completion.md).

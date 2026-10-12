@@ -2,8 +2,9 @@
 
 Guion listo para ensayar con `presentacion.pdf`, no para repetir entrenamiento.
 La presentación ya existía: se conservan sus 20 páginas, orden, tema y cifras.
-El informe final y cuatro capturas auténticas están completos. Faltan pesos,
-metadatos completos y caché; la entrega externa y permisos de Drive no están confirmados.
+El informe y las capturas anteriores están completos. La demo actual tiene tres páginas
+y cuenta con los 351 registros de train.csv. Los pesos y la caché siguen pendientes;
+la entrega externa y permisos de Drive no están confirmados.
 Los resultados son históricos: no se ejecutaron modelos ni se reevaluaron imágenes
 para preparar esta exposición. Es un prototipo de investigación, no clínico.
 
@@ -40,8 +41,8 @@ La portada no tiene número visible; página PDF 2 corresponde a 1/19 y PDF 20 a
 | 12 | 11/19 | El órgano cambia la lectura del promedio | No basta el promedio | C | 30 |
 | 13 | 12/19 | Desglose: tamaños pequeños y diferencias descriptivas | Pulmón limita el alcance | C | 40 |
 | 14 | 13/19 | Selección: SegFormer como opción de referencia | Referencia de esta ejecución | C | 35 |
-| 15 | 14/19 | Demostración honesta: cuatro páginas implementadas | CSV útiles sin pesos | C | 110 |
-| 16 | 15/19 | Nueva imagen: flujo disponible al recuperar los pesos | Implementado no es aceptado | C | 35 |
+| 15 | 14/19 | Demo: exploración y comparación de resultados | Tres páginas de dashboard | C | 110 |
+| 16 | 15/19 | Flujo de la demo: metadatos y métricas registradas | Datos y resultados, sin inferencia | C | 35 |
 | 17 | 16/19 | Límites y pendientes de entrega | Límites científicos y operativos | C | 30 |
 | 18 | 17/19 | Conclusiones y acciones de entrega | Entrega sin pesos explícita | C | 30 |
 | 19 | 18/19 | Referencias: contexto y arquitecturas | Respaldo bibliográfico | C | 5 |
@@ -56,8 +57,8 @@ La tabla orienta el ensayo; no convierte la duración en una medición ya realiz
 
 “Buenos días. Presentamos la comparación de tres modelos para segmentar unidades
 funcionales de tejido y una aplicación para explorar sus resultados. El informe
-está completo; la demo local no cuenta con pesos entrenados. Mostraremos esa
-limitación sin simular predicciones.”
+está completo. La demo recorre metadatos y resultados históricos sin ejecutar
+modelos ni simular predicciones.”
 
 *Señalar autores; transición: «Primero, qué problema resolvemos».*
 
@@ -76,7 +77,7 @@ con la misma entrada y split. SegFormer obtuvo el mayor Dice medio registrado,
 Riñón tiene 99 imágenes y pulmón 48; las cantidades no son iguales. El EDA previo
 registró una mediana de cobertura FTU de 5.9 por ciento: es mediana por imagen,
 no porcentaje de todos los píxeles. Este contexto ayuda a interpretar, no demuestra
-causas. Hoy no disponemos de train.csv para explorar todos esos metadatos.”
+causas. Los metadatos de train.csv ya están disponibles para explorarlos en la demo.”
 
 *Señalar cantidades y aviso de fuente; transición: «Cómo se separaron».*
 
@@ -185,32 +186,30 @@ Esta recomendación no prueba transferencia a otros laboratorios ni uso clínico
 
 *Transición: «Ahora mostraremos lo que la aplicación permite comprobar hoy».*
 
-### PDF 15 — Demostración honesta: cuatro páginas implementadas
+### PDF 15 — Demo: exploración y comparación de resultados
 
-“La aplicación tiene Inicio, Exploración, Predicción y Rendimiento. Sin pesos
-podemos navegar metadatos disponibles y resultados CSV. Predicción comunica
-el bloqueo real. Mostrar rendimiento es una preferencia persistente: oculta
-los resultados, no los borra ni cambia.”
+“El dashboard tiene Inicio, Exploración y Rendimiento. Podemos filtrar los 351
+metadatos y comparar resultados CSV de los tres modelos. Mostrar rendimiento
+es una preferencia persistente: oculta los resultados, no los borra ni cambia.”
 
 *Usar la ruta de demo siguiente durante 90 segundos; volver al PDF antes de avanzar.*
 
-### PDF 16 — Nueva imagen: flujo disponible al recuperar los pesos
+### PDF 16 — Flujo de la demo: metadatos y métricas registradas
 
-“El flujo implementado acepta PNG, JPEG o TIFF de una imagen, hasta 64 MiB
-y nueve millones de píxeles. Con pesos confiables produciría máscara binaria,
-superposición cian, porcentaje FTU y forward CPU. Si falta espaciado, declara
-la suposición de 0.4 micrómetros por píxel. Sin máscara de referencia no hay
-Dice o IoU de la carga. Implementación y pruebas sintéticas no equivalen a
-aceptación con checkpoints reales.”
+“Leemos los metadatos y la partición desde CSV, filtramos variables descriptivas
+y comparamos las métricas sobre las mismas imágenes. Las curvas provienen del
+historial registrado. La demo no recalcula esos resultados ni ejecuta inferencia
+sobre imágenes nuevas; ese alcance se mantiene separado.”
 
-*No cargar imágenes; transición: «Qué límites permanecen».*
+*Señalar el recorrido de datos; transición: «Qué límites permanecen».*
 
 ### PDF 17 — Límites y pendientes de entrega
 
 “Tenemos una ejecución por modelo, una muestra pequeña y ninguna incertidumbre
 cuantificada. El split no valida independencia por donante ni transferencia
 HPA a HuBMAP. Tampoco estudiamos otras resoluciones. Informe y capturas están
-completos; faltan activos locales y la entrega humana externa. No es una
+completos; los metadatos locales están disponibles, pero no la inferencia con pesos.
+La entrega humana externa está pendiente. No es una
 herramienta para diagnóstico.”
 
 *Señalar el estado actualizado; transición: «Concluimos sin ocultar estos límites».*
@@ -240,29 +239,29 @@ entrega humana. Recuperar activos requerirá autorización separada.”
 ## Demo propuesta: 90 segundos incluidos en PDF 15
 
 Antes de exponer, desde la raíz, abrir la aplicación con `uv run streamlit run app/Inicio.py`
-y dejar listas sus cuatro páginas. Este es un paso de preparación manual, no un
+y dejar listas sus tres páginas. Este es un paso de preparación manual, no un
 comando de entrenamiento. Usar el puerto indicado por Streamlit. No ejecutar notebooks,
 scripts de figuras, entrenamiento o evaluación ni abrir imágenes del split de prueba.
 
-1. **0–15 s, Inicio:** señalar resumen y avisos de activos faltantes.
-   Decir: “Los CSV existen; los checkpoints no están en este checkout”.
-2. **15–30 s, Exploración:** mostrar órganos y splits, un filtro y restablecerlo.
-   Decir: “Tenemos 351 registros de splits.csv; sin train.csv no mostramos
-   edad, dimensiones, fuente o cobertura como datos recuperados”.
+1. **0–15 s, Inicio:** señalar el resumen de modelos.
+   Decir: “Estas son las medias de la evaluación registrada”.
+2. **15–30 s, Exploración:** mostrar órganos, splits, edad y cobertura FTU;
+   aplicar un filtro y restablecerlo.
+   Decir: “Tenemos 351 metadatos recuperados de train.csv”.
 3. **30–60 s, Rendimiento:** elegir **Todos**, un órgano y alternar **DICE/IOU**;
    volver a todos los órganos y señalar comparación y curvas.
    Decir: “Son resultados guardados; el filtro por órgano no cambia el historial”.
    Desactivar **Mostrar rendimiento**, volver a Inicio y señalar que sigue oculto;
    reactivarlo. No describir dispersión como intervalo de confianza.
-4. **60–80 s, Predicción:** mostrar el aviso de bloqueo por pesos ausentes.
-   Decir: “No cargaremos imágenes ni inventaremos una máscara. El flujo está
-   implementado, pero su aceptación con pesos reales está diferida”.
-5. **80–90 s:** volver al PDF y enlazar con el flujo de nueva imagen.
+4. **60–80 s, Exploración:** volver a los metadatos y contrastar la cobertura
+   por órgano con los resultados de Rendimiento.
+   Decir: “Los patrones aportan contexto, pero no demuestran una causa”.
+5. **80–90 s:** volver al PDF y enlazar con el flujo del dashboard.
 
-**Respaldo si falla la aplicación:** mostrar las capturas auténticas existentes
-`informe/figuras/app_inicio.png`, `app_exploracion.png`, `app_rendimiento.png`
-y `app_prediccion.png`. Anunciar: “Son capturas del estado local previamente
-registrado, no una demo en vivo ni evidencia de inferencia”. No fabricar pantallas.
+**Respaldo si falla la aplicación:** las capturas anteriores corresponden a otra
+versión y no representan el menú actual. Si se utilizan Inicio, Exploración o
+Rendimiento, anunciarlas como capturas históricas; no mostrar la antigua página
+de Predicción como parte de la demo actual ni fabricar pantallas nuevas.
 
 ## Preguntas previsibles
 
@@ -282,7 +281,7 @@ registrado, no una demo en vivo ni evidencia de inferencia”. No fabricar panta
   con pesos locales ni duración total aquí. Los milisegundos publicados son forward
   de RTX 4060 Laptop, no CPU, latencia completa ni minutos de entrenamiento.
 - **¿Está todo terminado?** Informe, presentación y demo de CSV están listos.
-  Pesos, metadatos completos, caché y aceptación real están diferidos; permisos
+  Los metadatos ya están disponibles. Pesos, caché y aceptación real están diferidos; permisos
   de Drive y entrega humana externa permanecen pendientes. No afirmar toda la rúbrica cumplida.
 - **¿Sirve clínicamente o en HuBMAP externo?** No. No se validó transferencia
   de dominio, incertidumbre ni uso clínico; es un prototipo de investigación.
